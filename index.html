@@ -194,38 +194,31 @@
 //        '11': '#dc2127'  // Bold Red
 //    };
 	
-	const contentDiv = document.getElementById('app-content');
+const contentDiv = document.getElementById('app-content');
     const headerTitle = document.getElementById('headerTitle');
     const eventModal = document.getElementById('eventModal');
     const veranstalterModal = document.getElementById('veranstalterModal');
     let dynamicEvents = []; 
 
-    const API_URL = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}&timeMin=${(new Date()).toISOString()}&singleEvents=true&orderBy=startTime&maxResults=20&colorRgbFormat=true`;
+    // --- 2. HILFSFUNKTIONEN ---
 
-    // --- 2. HILFSFUNKTIONEN (KORRIGIERT UND ROBUSTER GEMACHT) ---
-
-    // Funktion extrahiert die ID aus dem Titel, z.B. "Frühlingsfest (ID:123) " -> 123
     function extractProviderId(titleString) {
         if (!titleString) return null;
-        // KORREKTUR: Sucht das Muster überall im String, nicht nur am Ende.
         const match = titleString.trim().match(/\(ID:(\d+)\)/i);
         return match ? parseInt(match[1]) : null;
     }
     
-    // Entfernt die (ID:...) Markierung aus dem Titel
     function cleanTitle(titleString) {
         if (!titleString) return 'Unbekanntes Event';
-        // Entfernt (ID:Zahl) überall im String, auch wenn Leerzeichen davor oder danach sind
         return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
     }
 
-// --- 3. DATENABRUF VON GOOGLE KALENDER (OHNE FARB-LOGIK) ---
+    // --- 3. DATENABRUF VON GOOGLE KALENDER (OHNE FARB-LOGIK) ---
 
     function fetchCalendarEvents() {
         headerTitle.textContent = "Lade Events...";
         contentDiv.innerHTML = ''; 
 
-        // colorRgbFormat=true kann hier bleiben, da es nicht schadet
         const API_URL = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}&timeMin=${(new Date()).toISOString()}&singleEvents=true&orderBy=startTime&maxResults=20&colorRgbFormat=true`;
 
         fetch(API_URL)
@@ -249,7 +242,6 @@
                         location: item.location || 'Keine Angabe',
                         description: item.description || 'Keine weitere Beschreibung vorhanden.',
                         providerId: providerId,
-                        // Feld eventColor ist hier nicht mehr nötig
                     };
                 });
                 renderEventList();
@@ -261,7 +253,7 @@
             });
     }
 
-// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (FARBE AUS ANBIETER-LISTE) ---
+    // --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN ---
 
     function renderEventList() {
         headerTitle.textContent = "Veranstaltungen";
@@ -275,13 +267,11 @@
             const provider = providers.find(p => p.id == event.providerId);
             const providerName = provider ? provider.name : "Unbekannter Anbieter";
             
-            // NEU: Die Farbe kommt direkt aus dem Provider-Objekt. Standard: Grau
+            // Die Farbe kommt direkt aus dem Provider-Objekt. Standard: Grau
             const cardColor = provider ? provider.color : '#aaaaaa'; 
 
             const card = document.createElement('div');
             card.className = 'card';
-            
-            // Die Farbe des linken Randes setzen
             card.style.borderLeftColor = cardColor; 
             
             card.innerHTML = `
@@ -293,11 +283,30 @@
             contentDiv.appendChild(card);
         });
     }
-	
+
+    // ### KORRIGIERTE FUNKTION: renderProviderList ###
+    function renderProviderList() {
+        headerTitle.textContent = "Anbieter";
+        contentDiv.innerHTML = ''; 
+        providers.forEach(provider => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            // Farbe des Anbieters im Rand anzeigen
+            card.style.borderLeftColor = provider.color || '#aaaaaa'; 
+            card.innerHTML = `
+                <h3>${provider.name}</h3>
+                <p>Info: ${provider.info}</p>
+            `;
+            card.onclick = () => showVeranstalterDetails(provider.id);
+            contentDiv.appendChild(card);
+        });
+    }
+    // ##################################################
+
     // --- 5. DETAIL-FUNKTIONEN (MODAL) --- 
 
     function showEventDetails(event) {
-        const provider = providers.find(p => p.id === event.providerId);
+        const provider = providers.find(p => p.id == event.providerId);
         const providerName = provider ? provider.name : "Unbekannt";
         
         document.getElementById('modalEventTitle').textContent = event.title;
@@ -355,12 +364,15 @@
             fetchCalendarEvents(); 
         } else if (view === 'providers') {
             document.getElementById('providers-btn').classList.add('active');
-            renderProviderList();
+            renderProviderList(); // Funktioniert jetzt wieder!
         }
     }
 
     window.onload = () => {
         fetchCalendarEvents();
+        // Stellen Sie sicher, dass die Buttons korrekt funktionieren
+        document.getElementById('events-btn').onclick = () => switchView('events');
+        document.getElementById('providers-btn').onclick = () => switchView('providers');
     };
 
     window.onclick = function(event) {
