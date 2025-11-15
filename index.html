@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokale Events App</title>
+    <style>
+        /* CSS für ein App-ähnliches Design */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.2em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        /* Navigationsleiste unten */
+        nav {
+            display: flex;
+            justify-content: space-around;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 600px;
+            background-color: #fff;
+            border-top: 1px solid #ccc;
+            z-index: 10;
+        }
+        nav button {
+            flex-grow: 1;
+            padding: 15px 0;
+            border: none;
+            background: none;
+            font-size: 1em;
+            cursor: pointer;
+            color: #555;
+            transition: color 0.3s;
+        }
+        nav button.active {
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        /* Event-Karten */
+        .card {
+            background-color: white;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #007bff;
+            cursor: pointer;
+        }
+        .card h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Detail-Ansicht (Modal) */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 20; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%; 
+            max-width: 400px;
+            border-radius: 10px;
+            animation-name: animatetop;
+            animation-duration: 0.4s;
+        }
+        @keyframes animatetop {
+            from {top: -300px; opacity: 0}
+            to {top: 10%; opacity: 1}
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Anbieter-Details im Modal */
+        #veranstalterDetail h3 {
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header id="headerTitle">Events</header>
+
+    <div id="app-content" style="padding-bottom: 70px;">
+        </div>
+
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('eventModal')">&times;</span>
+            <h2 id="modalEventTitle"></h2>
+            <p><strong>Wann:</strong> <span id="modalEventDate"></span></p>
+            <p><strong>Wo:</strong> <span id="modalEventLocation"></span></p>
+            <p><strong>Beschreibung:</strong> <span id="modalEventDescription"></span></p>
+            <hr>
+            <p>Veranstaltet von: 
+                <strong style="color: #007bff; cursor: pointer;" onclick="showVeranstalterDetails(document.getElementById('modalEventProviderId').value)">
+                    <span id="modalEventProviderName"></span> 
+                    (Details anzeigen)
+                </strong>
+            </p>
+            <input type="hidden" id="modalEventProviderId">
+        </div>
+    </div>
+
+    <div id="veranstalterModal" class="modal">
+        <div class="modal-content" id="veranstalterDetail">
+            <span class="close-button" onclick="closeModal('veranstalterModal')">&times;</span>
+            <h3 id="modalProviderName"></h3>
+            <p><strong>Kontakt:</strong> <span id="modalProviderContact"></span></p>
+            <p><strong>Info:</strong> <span id="modalProviderInfo"></span></p>
+            <a id="modalProviderLink" href="#" target="_blank" style="color: #007bff;">Zur Webseite</a>
+        </div>
+    </div>
+
+    <nav>
+        <button id="events-btn" class="active" onclick="switchView('events')">Veranstaltungen</button>
+        <button id="providers-btn" onclick="switchView('providers')">Anbieter</button>
+    </nav>
+</div>
+
+
+<script>
+    // --- 1. KONFIGURATION (HIER MÜSSEN SIE ERSETZEN!) ---
+    // Siehe Anleitung von Google zur Erstellung eines API-Schlüssels und zur Kalender-ID
+    const API_KEY = 'AIzaSyDDsCuRzCYH-U3tjoTu1VCiv641zY7K4Cc'; 
+    const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com'; 
+// Basisdaten für die Anbieter (Verwenden Sie Eindeutige IDs!)
+    const providers = [
+        { id: 1, name: "TSV Nordleda", contact: "info@sv-blauweiss.de", info: "Der lokale Sportverein mit Angeboten für alle Altersgruppen.", link: "https://sv-blauweiss.de", color: "#a4bdfc" },
+        { id: 2, name: "DRK Nordleda", contact: "kultur@mitte.org", info: "Organisation von Kunstausstellungen, Lesungen und Konzerten.", link: "https://kultur-mitte.org", color: "#ff887c" },
+        { id: 3, name: "Schützenverein Nordleda", contact: "bibliothek@stadt.de", info: "Lesungen, Workshops und die Ausleihe von Büchern und Medien.", link: "https://bibliothek.stadt.de", color: "#7ae7bf" },
+        { id: 4, name: "Kirchengemeinde Nordleda", contact: "bibliothek@stadt.de", info: "Lesungen, Workshops und die Ausleihe von Büchern und Medien.", link: "https://bibliothek.stadt.de", color: "#dbadff" }
+		// ... Fügen Sie alle weiteren Anbieter hier mit einer eindeutigen ID ein ...
+    ];
+	
+// --- FARBTABELLE (Wird zur Zuordnung der Google-IDs zu einer CSS-Farbe verwendet) ---
+//    const colorMap = {
+//        '1': '#a4bdfc', // Light Blue - Default
+//        '2': '#7ae7bf', // Green
+//        '3': '#dbadff', // Purple
+//        '4': '#ff887c', // Red
+//        '5': '#fbd75b', // Yellow
+//        '6': '#ffb878', // Orange
+//        '7': '#46d6db', // Cyan
+//        '8': '#e1e1e1', // Gray
+//        '9': '#5484ed', // Bold Blue
+//        '10': '#51b749', // Bold Green
+//        '11': '#dc2127'  // Bold Red
+//    };
+	
+	const contentDiv = document.getElementById('app-content');
+    const headerTitle = document.getElementById('headerTitle');
+    const eventModal = document.getElementById('eventModal');
+    const veranstalterModal = document.getElementById('veranstalterModal');
+    let dynamicEvents = []; 
+
+    const API_URL = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}&timeMin=${(new Date()).toISOString()}&singleEvents=true&orderBy=startTime&maxResults=20&colorRgbFormat=true`;
+
+    // --- 2. HILFSFUNKTIONEN (KORRIGIERT UND ROBUSTER GEMACHT) ---
+
+    // Funktion extrahiert die ID aus dem Titel, z.B. "Frühlingsfest (ID:123) " -> 123
+    function extractProviderId(titleString) {
+        if (!titleString) return null;
+        // KORREKTUR: Sucht das Muster überall im String, nicht nur am Ende.
+        const match = titleString.trim().match(/\(ID:(\d+)\)/i);
+        return match ? parseInt(match[1]) : null;
+    }
+    
+    // Entfernt die (ID:...) Markierung aus dem Titel
+    function cleanTitle(titleString) {
+        if (!titleString) return 'Unbekanntes Event';
+        // Entfernt (ID:Zahl) überall im String, auch wenn Leerzeichen davor oder danach sind
+        return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
+    }
+
+// --- 3. DATENABRUF VON GOOGLE KALENDER (OHNE FARB-LOGIK) ---
+
+    function fetchCalendarEvents() {
+        headerTitle.textContent = "Lade Events...";
+        contentDiv.innerHTML = ''; 
+
+        // colorRgbFormat=true kann hier bleiben, da es nicht schadet
+        const API_URL = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}&timeMin=${(new Date()).toISOString()}&singleEvents=true&orderBy=startTime&maxResults=20&colorRgbFormat=true`;
+
+        fetch(API_URL)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}. API-Schlüssel oder Kalender-ID prüfen.`);
+                }
+                return response.json(); 
+            })
+            .then(data => {
+                dynamicEvents = data.items.map((item, index) => {
+                    const rawTitle = item.summary || '';
+                    const providerId = extractProviderId(rawTitle);
+
+                    return {
+                        id: index, 
+                        title: cleanTitle(rawTitle), 
+                        date: new Date(item.start.dateTime || item.start.date).toLocaleDateString('de-DE', {
+                            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                        }).replace(/, 00:00 Uhr/, '').trim(), 
+                        location: item.location || 'Keine Angabe',
+                        description: item.description || 'Keine weitere Beschreibung vorhanden.',
+                        providerId: providerId,
+                        // Feld eventColor ist hier nicht mehr nötig
+                    };
+                });
+                renderEventList();
+            })
+            .catch(error => {
+                headerTitle.textContent = "Fehler beim Laden!";
+                contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: ${error.message}.</p>`;
+                console.error("Error fetching events:", error);
+            });
+    }
+
+// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (FARBE AUS ANBIETER-LISTE) ---
+
+    function renderEventList() {
+        headerTitle.textContent = "Veranstaltungen";
+        contentDiv.innerHTML = ''; 
+        if (dynamicEvents.length === 0) {
+            contentDiv.innerHTML = `<p style="margin: 20px;">Keine zukünftigen Veranstaltungen gefunden.</p>`;
+            return;
+        }
+
+        dynamicEvents.forEach(event => {
+            const provider = providers.find(p => p.id == event.providerId);
+            const providerName = provider ? provider.name : "Unbekannter Anbieter";
+            
+            // NEU: Die Farbe kommt direkt aus dem Provider-Objekt. Standard: Grau
+            const cardColor = provider ? provider.color : '#aaaaaa'; 
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Die Farbe des linken Randes setzen
+            card.style.borderLeftColor = cardColor; 
+            
+            card.innerHTML = `
+                <h3>${event.title}</h3>
+                <p>Datum: ${event.date}</p>
+                <p>Anbieter: <strong>${providerName}</strong></p>
+            `;
+            card.onclick = () => showEventDetails(event);
+            contentDiv.appendChild(card);
+        });
+    }
+	
+    // --- 5. DETAIL-FUNKTIONEN (MODAL) --- 
+
+    function showEventDetails(event) {
+        const provider = providers.find(p => p.id === event.providerId);
+        const providerName = provider ? provider.name : "Unbekannt";
+        
+        document.getElementById('modalEventTitle').textContent = event.title;
+        document.getElementById('modalEventDate').textContent = event.date;
+        document.getElementById('modalEventLocation').textContent = event.location;
+        document.getElementById('modalEventDescription').innerHTML = event.description.replace(/\n/g, '<br>'); 
+        
+        document.getElementById('modalEventProviderName').textContent = providerName;
+        document.getElementById('modalEventProviderId').value = event.providerId; 
+
+        const providerLinkElement = document.getElementById('modalEventProviderName').parentElement;
+        if (provider) {
+            providerLinkElement.style.display = 'block';
+        } else {
+            providerLinkElement.style.display = 'none';
+        }
+
+        eventModal.style.display = "block";
+    }
+
+    function showVeranstalterDetails(providerId) {
+        const provider = providers.find(p => p.id == providerId);
+        if (!provider) return;
+
+        eventModal.style.display = "none"; 
+
+        document.getElementById('modalProviderName').textContent = provider.name;
+        document.getElementById('modalProviderContact').textContent = provider.contact;
+        document.getElementById('modalProviderInfo').textContent = provider.info;
+        
+        const providerLinkElement = document.getElementById('modalProviderLink');
+        if (provider.link) {
+            providerLinkElement.href = provider.link;
+            providerLinkElement.textContent = `Zur Webseite von ${provider.name}`;
+            providerLinkElement.style.display = 'block';
+        } else {
+            providerLinkElement.style.display = 'none';
+        }
+
+        veranstalterModal.style.display = "block";
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+
+    // --- 6. NAVIGATION UND START ---
+
+    function switchView(view) {
+        document.getElementById('events-btn').classList.remove('active');
+        document.getElementById('providers-btn').classList.remove('active');
+
+        if (view === 'events') {
+            document.getElementById('events-btn').classList.add('active');
+            fetchCalendarEvents(); 
+        } else if (view === 'providers') {
+            document.getElementById('providers-btn').classList.add('active');
+            renderProviderList();
+        }
+    }
+
+    window.onload = () => {
+        fetchCalendarEvents();
+    };
+
+    window.onclick = function(event) {
+        if (event.target == eventModal) {
+            eventModal.style.display = "none";
+        }
+        if (event.target == veranstalterModal) {
+            veranstalterModal.style.display = "none";
+        }
+    }
+</script>
+</body>
+</html>
