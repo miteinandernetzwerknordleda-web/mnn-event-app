@@ -351,7 +351,7 @@ const contentDiv = document.getElementById('app-content');
             
             card.innerHTML = `
                 <h3>${event.title}</h3>
-                <p>Datum: ${event.date}</p>
+                <p>Datum: <h2><strong>${event.date}</strong></h2></p>
                 <p>Anbieter: <strong>${providerName}</strong></p>
             `;
             card.onclick = () => showEventDetails(event);
@@ -464,3 +464,4 @@ const contentDiv = document.getElementById('app-content');
 </script>
 </body>
 </html>
+
