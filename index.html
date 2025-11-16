@@ -5,17 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lokale Events App</title>
 <style>
-    /* 1. GLOBALE STILE */
+/* 1. GLOBALE STILE */
     body {
         font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f4f7f6; /* Sehr helles Grau */
+        background-color: #f4f7f6; 
         color: #333;
         line-height: 1.6;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        
+        /* NEU: Scrollbar immer anzeigen, um Breite zu fixieren */
+        overflow-y: scroll; 
+    }
+
+	.spinner {
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-left-color: #8B4513; /* Die Farbe des Header-Braun verwenden */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto; /* Zentrieren des Spinners */
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 
 /* 2. HEADER UND CONTAINER (Aktualisiert für Logo) */
@@ -58,6 +76,31 @@
         text-align: left; /* Text links vom Logo */
     }
 
+	#search-container {
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 10px 20px;
+        background-color: #f4f7f6; /* Heller Hintergrund */
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        z-index: 5;
+    }
+
+    #searchInput {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 20px; /* Abgerundete Ecken */
+        font-size: 1em;
+        box-sizing: border-box; /* Wichtig, damit das Padding die Breite nicht sprengt */
+        transition: border-color 0.3s;
+    }
+
+    #searchInput:focus {
+        outline: none;
+        border-color: #8B4513; /* Fokus-Farbe: Braun */
+        box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
+    }
 
 /* 3. KARTEN-STIL */
     .card {
@@ -229,10 +272,20 @@
             border-top-left-radius: 0;
             border-top-right-radius: 0;
         }
-        .modal-content {
-            margin: 10% auto;
-            width: 95%;
-        }
+	.modal-content {
+        background-color: #fefefe;
+        /* NEU: Maximale Breite für Mobile sicherstellen */
+        margin: 10% auto; /* 10% Abstand oben, zentriert horizontal */
+        padding: 20px;
+        border: 1px solid #888;
+        border-radius: 10px;
+        /* WICHTIG für Mobile: Breite auf 90% des Viewports setzen, 
+           aber nie breiter als 600px */
+        width: 90%; 
+        max-width: 600px; 
+        
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
     }
 </style>
 </head>
@@ -245,25 +298,22 @@
     </div>
     <h1 id="headerTitle">Veranstaltungen</h1> 
 </header>
+
+<div id="search-container">
+    <input type="text" id="searchInput" placeholder="Events, Anbieter oder Ort suchen...">
+</div>
+
+<div id="app-loader" style="text-align: center; padding-top: 50px;">
+    <div class="spinner"></div>
+    <p style="margin-top: 15px; color: #666;">Veranstaltungen werden geladen...</p>
+</div>
+
     <div id="app-content" style="padding-bottom: 70px;">
         </div>
 
 <div id="eventModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('eventModal')">&times;</span> 
-        
-        <h2 id="modalEventTitle"></h2>
-        <p><strong>Wann:</strong> <span id="modalEventDate"></span></p>
-        <p><strong>Wo:</strong> <span id="modalEventLocation"></span></p>
-        <p><strong>Beschreibung:</strong> <span id="modalEventDescription"></span></p>
-        <hr>
-        <p>Veranstaltet von: 
-            <strong id="providerLinkContainer" style="color: #8B4513; cursor: pointer;" onclick="showVeranstalterDetails(document.getElementById('modalEventProviderId').value)">
-                <span id="modalEventProviderName"></span> 
-                (Details anzeigen)
-            </strong>
-        </p>
-        <input type="hidden" id="modalEventProviderId">
         </div>
 </div>
 
@@ -310,10 +360,12 @@
 		// ... Fügen Sie alle weiteren Anbieter hier mit einer eindeutigen ID ein ...
     ];
 	
-const contentDiv = document.getElementById('app-content');
+	const contentDiv = document.getElementById('app-content');
     const headerTitle = document.getElementById('headerTitle');
+	const searchInput = document.getElementById('searchInput');
     const eventModal = document.getElementById('eventModal');
     const veranstalterModal = document.getElementById('veranstalterModal');
+	const appLoader = document.getElementById('app-loader');
     let dynamicEvents = []; 
 
     // --- 2. HILFSFUNKTIONEN ---
@@ -329,11 +381,12 @@ const contentDiv = document.getElementById('app-content');
         return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
     }
 
-// --- 3. DATENABRUF VON GOOGLE KALENDER (KORRIGIERT FÜR GANZTAGESEVENTS) ---
+// --- 3. DATENABRUF VON GOOGLE KALENDER (KORRIGIERT FÜR LOADER) ---
 
 function fetchCalendarEvents() {
-    headerTitle.textContent = "Lade Events...";
+    headerTitle.textContent = "Veranstaltungen"; // Titel bleibt statisch
     contentDiv.innerHTML = ''; 
+    appLoader.style.display = 'block'; // Loader anzeigen
 
     const twoWeeksFromNow = new Date();
     twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
@@ -344,41 +397,38 @@ function fetchCalendarEvents() {
     fetch(API_URL)
         .then(response => {
             if (!response.ok) {
+                appLoader.style.display = 'none'; // Bei Fehler ausblenden
                 throw new Error(`HTTP error! status: ${response.status}. API-Schlüssel oder Kalender-ID prüfen.`);
             }
             return response.json(); 
         })
         .then(data => {
             dynamicEvents = data.items.map((item, index) => {
+                // ... (Ihre gesamte Event-Mapping Logik bleibt hier unverändert) ...
                 const rawTitle = item.summary || '';
                 const providerId = extractProviderId(rawTitle);
                 
-                // Prüfen, ob es ein Event mit genauer Uhrzeit ist (dateTime vorhanden)
                 const isTimedEvent = !!item.start.dateTime;
                 const eventStart = new Date(item.start.dateTime || item.start.date);
                 
                 let startDate;
-                let endDate = ''; // Endzeit ist standardmäßig leer
+                let endDate = ''; 
 
                 if (isTimedEvent) {
-                    // Falls es eine Uhrzeit gibt, Datum und Uhrzeit anzeigen
                     startDate = eventStart.toLocaleDateString('de-DE', {
                         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                     }).trim(); 
 
-                    // Enddatum und -uhrzeit formatieren
                     endDate = new Date(item.end.dateTime).toLocaleTimeString('de-DE', {
                         hour: '2-digit', minute: '2-digit'
                     }).trim();
 
                 } else {
-                    // Falls es ein Ganztagesevent ist, nur das Datum anzeigen
                     startDate = eventStart.toLocaleDateString('de-DE', {
                         year: 'numeric', month: 'long', day: 'numeric'
                     }).trim();
                 }
 
-                // Tag und Wochentag für die linke Sidebar bleiben gleich
                 const dayOfMonth = eventStart.getDate(); 
                 const dayOfWeekShort = eventStart.toLocaleDateString('de-DE', {
                     weekday: 'short'
@@ -387,8 +437,8 @@ function fetchCalendarEvents() {
                 return {
                     id: index, 
                     title: cleanTitle(rawTitle), 
-                    date: startDate, // Zeigt entweder Datum+Uhrzeit oder nur Datum
-                    endDate: endDate, // Ist leer, wenn Ganztagesevent
+                    date: startDate, 
+                    endDate: endDate, 
                     dayOfMonth: dayOfMonth, 
                     dayOfWeekShort: dayOfWeekShort, 
                     location: item.location || 'Keine Angabe',
@@ -396,6 +446,7 @@ function fetchCalendarEvents() {
                     providerId: providerId,
                 };
             });
+            appLoader.style.display = 'none'; // Loader ausblenden, da Daten da sind
             renderEventList();
         })
         .catch(error => {
@@ -448,7 +499,6 @@ function fetchCalendarEvents() {
     });
 }
 
-// ### KORRIGIERTE FUNKTION: renderProviderList (mit Hover-Farbe) ###
     function renderProviderList() {
         headerTitle.textContent = "Anbieter";
         contentDiv.innerHTML = ''; 
@@ -483,35 +533,157 @@ function fetchCalendarEvents() {
             contentDiv.appendChild(card);
         });
     }
-    // ##################################################
 
-// --- 5. DETAIL-FUNKTIONEN (MODAL) --- 
+// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (Ergänzung für Filter) ---
 
-	function showEventDetails(event) {
-        const provider = providers.find(p => p.id == event.providerId);
-        const providerName = provider ? provider.name : "Unbekannt";
-        
-        // Anzeige der Zeit anpassen:
-        const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : `${event.date} Uhr`;
+function filterEvents() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    if (document.getElementById('events-btn').classList.contains('active')) {
+        // Filterlogik für Events
+        const filteredEvents = dynamicEvents.filter(event => {
+            const provider = providers.find(p => p.id == event.providerId);
+            const providerName = provider ? provider.name.toLowerCase() : '';
+            
+            return event.title.toLowerCase().includes(searchTerm) ||
+                   event.location.toLowerCase().includes(searchTerm) ||
+                   providerName.includes(searchTerm);
+        });
+        renderFilteredEventList(filteredEvents);
 
-        document.getElementById('modalEventTitle').textContent = event.title;
-        document.getElementById('modalEventDate').textContent = timeDisplay; 
-        document.getElementById('modalEventLocation').textContent = event.location;
-        document.getElementById('modalEventDescription').innerHTML = event.description.replace(/\n/g, '<br>'); 
-        
-        document.getElementById('modalEventProviderName').textContent = providerName;
-        document.getElementById('modalEventProviderId').value = event.providerId; 
-
-        // NEU: Verwenden der korrigierten ID, um den Link-Container zu steuern
-        const providerLinkContainer = document.getElementById('providerLinkContainer'); 
-        if (provider) {
-            providerLinkContainer.style.display = 'block';
-        } else {
-            providerLinkContainer.style.display = 'none';
-        }
-
-        eventModal.style.display = "block";
+    } else if (document.getElementById('providers-btn').classList.contains('active')) {
+        // Filterlogik für Anbieter
+        const filteredProviders = providers.filter(provider => {
+            return provider.name.toLowerCase().includes(searchTerm) ||
+                   provider.info.toLowerCase().includes(searchTerm);
+        });
+        renderFilteredProviderList(filteredProviders);
     }
+}
+
+// Erstellt eine gefilterte Liste (Basierend auf renderEventList)
+function renderFilteredEventList(eventsToRender) {
+    headerTitle.textContent = "Veranstaltungen";
+    contentDiv.innerHTML = ''; 
+    if (eventsToRender.length === 0) {
+        contentDiv.innerHTML = `<p style="margin: 20px;">Keine Events gefunden, die dem Suchbegriff entsprechen.</p>`;
+        return;
+    }
+    
+    eventsToRender.forEach(event => {
+        const provider = providers.find(p => p.id == event.providerId);
+        const providerName = provider ? provider.name : "Unbekannter Anbieter";
+        const cardColor = provider ? provider.color : '#aaaaaa'; 
+        
+        // Der Rest ist identisch mit der ursprünglichen renderEventList Logik
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.borderLeftColor = cardColor;
+        card.style.setProperty('--event-color', cardColor); 
+        card.style.display = 'flex'; 
+        card.style.alignItems = 'flex-start';
+        
+        card.innerHTML = `
+            <div class="date-container">
+                <div class="date-day-num">${event.dayOfMonth}</div>
+                <div class="date-day-short">${event.dayOfWeekShort}</div>
+            </div>
+            <div class="card-content">
+                <h3>${event.title}</h3>
+                <p>Datum: ${event.date}</p>
+                <p>Anbieter: <strong>${providerName}</strong></p>
+            </div>
+        `;
+        card.onclick = () => showEventDetails(event);
+        contentDiv.appendChild(card);
+    });
+}
+
+// Erstellt eine gefilterte Liste (Basierend auf renderProviderList)
+function renderFilteredProviderList(providersToRender) {
+    headerTitle.textContent = "Anbieter";
+    contentDiv.innerHTML = ''; 
+    
+    providersToRender.forEach(provider => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.display = 'flex'; 
+        card.style.alignItems = 'flex-start';
+        
+        const cardColor = provider.color || '#aaaaaa';
+        card.style.borderLeftColor = cardColor; 
+        card.style.setProperty('--event-color', cardColor); 
+        
+        card.innerHTML = `
+            <div class="date-container" style="visibility: hidden;">
+                <div class="date-day-num">00</div> 
+                <div class="date-day-short">XX</div>
+            </div>
+            <div class="card-content">
+                <h3>${provider.name}</h3>
+                <p>Info: ${provider.info}</p>
+            </div>
+        `;
+        card.onclick = () => showVeranstalterDetails(provider.id);
+        contentDiv.appendChild(card);
+    });
+}
+
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (KORRIGIERT: SICHERE LINKFARBE) ---
+
+function showEventDetails(event) {
+    const provider = providers.find(p => p.id == event.providerId);
+    const providerName = provider ? provider.name : "Unbekannter Anbieter";
+    
+    // Anbieterfarbe für Akzente (z.B. Trennlinie)
+    const providerColor = provider ? provider.color : '#8B4513'; 
+    
+    // NEU: Festlegen der sicheren Lesefarbe (Header-Braun) für alle Textelemente im Modal
+    const safeLinkColor = '#8B4513'; 
+
+    // Anzeige der Zeit anpassen
+    const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : event.date;
+
+    // Google Maps URL erstellen
+    const locationEncoded = encodeURIComponent(event.location);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${locationEncoded}`; 
+
+    // 1. Link-Text erstellen (Verwendet sichere Farbe!)
+    const locationLink = `<a href="${mapsUrl}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
+
+    // Inhalt des Modals zusammenbauen
+    const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
+    
+    // Wir leeren den Inhalt (außer dem Schließkreuz, das bleibt)
+    Array.from(modalContent.children).forEach(child => {
+        if (!child.classList.contains('close')) {
+            child.remove();
+        }
+    });
+
+    // NEUE STRUKTUR HINZUFÜGEN
+    const detailsHTML = `
+        <h2 style="color: #8B4513;">${event.title}</h2> 
+        <p><strong>Wann:</strong> ${timeDisplay}</p>
+        <p><strong>Wo:</strong> ${locationLink}</p>
+        
+        <hr style="border-top: 1px solid ${providerColor}; margin: 15px 0;">
+        
+        <p><strong>Anbieter:</strong> 
+            <strong style="color: ${safeLinkColor}; cursor: pointer;" onclick="showVeranstalterDetails(${event.providerId})">
+                ${providerName} (Details anzeigen)
+            </strong>
+        </p>
+        <h3 style="margin-top: 20px;">Beschreibung:</h3>
+        <p>${event.description.replace(/\n/g, '<br>')}</p>
+    `;
+    
+    // Füge den neuen Inhalt nach dem Schließ-Span ein
+    modalContent.insertAdjacentHTML('beforeend', detailsHTML);
+    
+    eventModal.style.display = "block";
+}
+
     function showVeranstalterDetails(providerId) {
         const provider = providers.find(p => p.id == providerId);
         if (!provider) return;
@@ -538,26 +710,30 @@ function fetchCalendarEvents() {
         document.getElementById(modalId).style.display = "none";
     }
 
-    // --- 6. NAVIGATION UND START ---
+// --- 6. NAVIGATION UND START (KORRIGIERT) ---
 
     function switchView(view) {
         document.getElementById('events-btn').classList.remove('active');
         document.getElementById('providers-btn').classList.remove('active');
+        searchInput.value = ''; // Wichtig: Suchfeld beim Wechsel löschen
 
         if (view === 'events') {
             document.getElementById('events-btn').classList.add('active');
             fetchCalendarEvents(); 
         } else if (view === 'providers') {
             document.getElementById('providers-btn').classList.add('active');
-            renderProviderList(); // Funktioniert jetzt wieder!
+            renderProviderList(); 
         }
     }
 
-    window.onload = () => {
+	window.onload = () => {
         fetchCalendarEvents();
         // Stellen Sie sicher, dass die Buttons korrekt funktionieren
         document.getElementById('events-btn').onclick = () => switchView('events');
         document.getElementById('providers-btn').onclick = () => switchView('providers');
+        
+        // NEU: Listener für die Sucheingabe
+        searchInput.addEventListener('input', filterEvents);
     };
 
     window.onclick = function(event) {
@@ -571,4 +747,3 @@ function fetchCalendarEvents() {
 </script>
 </body>
 </html>
-
