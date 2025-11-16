@@ -407,7 +407,7 @@ function fetchCalendarEvents() {
 	
 // --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (KORRIGIERT FÜR DATUM-SIDEBAR) ---
 
-function renderEventList() {
+	function renderEventList() {
     headerTitle.textContent = "Veranstaltungen";
     contentDiv.innerHTML = ''; 
     if (dynamicEvents.length === 0) {
@@ -448,9 +448,46 @@ function renderEventList() {
     });
 }
 
+// ### KORRIGIERTE FUNKTION: renderProviderList (mit Hover-Farbe) ###
+    function renderProviderList() {
+        headerTitle.textContent = "Anbieter";
+        contentDiv.innerHTML = ''; 
+        providers.forEach(provider => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            // Anpassung der Karte an die Flexbox-Struktur der Events:
+            card.style.display = 'flex'; 
+            card.style.alignItems = 'flex-start';
+            
+            const cardColor = provider.color || '#aaaaaa';
+            
+            // 1. Randfarbe setzen
+            card.style.borderLeftColor = cardColor; 
+            
+            // 2. WICHTIG: Die Farbe für den Hover-Effekt als CSS-Variable setzen!
+            card.style.setProperty('--event-color', cardColor); 
+            
+            // Leerer Datums-Container für Konsistenz (bleibt leer)
+            card.innerHTML = `
+                <div class="date-container" style="visibility: hidden;">
+                    <div class="date-day-num">00</div> 
+                    <div class="date-day-short">XX</div>
+                </div>
+                <div class="card-content">
+                    <h3>${provider.name}</h3>
+                    <p>Info: ${provider.info}</p>
+                </div>
+            `;
+            card.onclick = () => showVeranstalterDetails(provider.id);
+            contentDiv.appendChild(card);
+        });
+    }
+    // ##################################################
+
 // --- 5. DETAIL-FUNKTIONEN (MODAL) --- 
 
-function showEventDetails(event) {
+	function showEventDetails(event) {
         const provider = providers.find(p => p.id == event.providerId);
         const providerName = provider ? provider.name : "Unbekannt";
         
