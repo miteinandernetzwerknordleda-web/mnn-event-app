@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lokale Events App</title>
 <style>
+* {
+    box-sizing: border-box; /* WICHTIG: Stellt sicher, dass Padding und Border zur Gesamtbreite gehören */
+}
 /* 1. GLOBALE STILE */
     body {
         font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -17,8 +20,10 @@
         display: flex;
         flex-direction: column;
         
-        /* NEU: Scrollbar immer anzeigen, um Breite zu fixieren */
         overflow-y: scroll; 
+        
+        /* NEU: Horizontales Scrollen verbieten */
+        overflow-x: hidden; 
     }
 
 	.spinner {
