@@ -294,28 +294,29 @@
 	
 /* 6. MODAL STIL (Ergänzung für Bilder) */
 
-.event-image-container {
-    text-align: center;
-    margin: 15px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    overflow: hidden;
-    /* Füge diese Regel hinzu, um sicherzustellen, dass die Höhe durch den Inhalt bestimmt wird */
-    height: auto; 
-}
+    .event-image-container {
+        text-align: center; /* WICHTIG: Zentriert das Bild horizontal */
+        margin: 15px auto; /* 15px oben/unten, auto zentriert den Container selbst */
+        max-width: 100%; /* Sicherstellen, dass der Container nicht breiter als das Modal ist */
+        
+        /* DIESEN RAHMEN ENTFERNEN */
+        /* border: 1px solid #ddd; */ 
+        
+        border-radius: 5px;
+        overflow: hidden;
+        height: auto; 
+    }
 
-.event-image {
-    /* Begrenzt die Bildgröße auf die Modalfensterbreite */
-    max-width: 100%; 
-    
-    /* Wichtig: Erzwingt korrekte Höhenskalierung und ignoriert kleine Standardwerte */
-    height: auto !important; 
-    
-    display: block; 
-    
-    /* Optional: Füge eine kleine Mindesthöhe hinzu, falls height: auto ignoriert wird */
-    min-height: 50px; 
-}
+    .event-image {
+        max-width: 100%; 
+        height: auto !important; 
+        display: block; 
+        min-height: 50px; 
+        
+        /* DIESEN RAHMEN HABE ICH IN DIE CONTAINER-REGEL GESETZT. 
+           Wenn Sie hier einen Rahmen haben, entfernen Sie ihn. */
+        border: none; 
+    }
 	
     }
 </style>
@@ -660,30 +661,28 @@ function renderFilteredProviderList(providersToRender) {
     });
 }
 
-// --- VERBESSERTE FUNKTION: Drive Link für Anzeige vorbereiten ---
+// --- KORRIGIERTE FUNKTION: Drive Link für Anzeige vorbereiten (ALTERNATIVE URL) ---
 
 /**
  * Sucht nach einem Google Drive Link in der Beschreibung und konvertiert ihn
  * in ein embed-fähiges Format. Jetzt kompatibel mit 'file/d/...' UND 'open?id=...'.
  */
 function getEmbeddableDriveLink(description) {
-    // SUCHT NACH DER ID, ENTWEDER IM PFAD ODER HINTER id=. 
-    // Der Ausdruck ([^&]+) stellt sicher, dass die ID bis zum nächsten '&' oder zum Ende des Strings erfasst wird.
-    const fileIdRegex = /(?:file\/d\/|id=)([^&]+)/;
+    const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
     const match = description.match(fileIdRegex);
     
     if (match && match[1]) {
-        const fileId = match[1];
-        // Entfernt ggf. nachfolgende Leerzeichen oder andere störende Zeichen
-        const cleanedFileId = fileId.trim(); 
+        const fileId = match[1].trim(); 
         
-        // Konvertiert die File ID in den öffentlichen Embed-Link-Endpunkt
-        return `https://drive.google.com/uc?export=view&id=${cleanedFileId}`;
+        // NEU: Alternative Google Drive Bild-Embed-URL
+        // Diese URL-Struktur ist oft robuster für direkte img src Einbettungen.
+        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`; // sz=w600 begrenzt die Breite auf 600px
+
     }
     return null;
 }
 
-// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (KORRIGIERT: DEBUG) ---
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (KORRIGIERT: LINK ENTFERNEN) ---
 
 function showEventDetails(event) {
     const provider = providers.find(p => p.id == event.providerId);
@@ -691,16 +690,21 @@ function showEventDetails(event) {
     const providerColor = provider ? provider.color : '#8B4513'; 
     const safeLinkColor = '#8B4513'; 
 
-    // Prüfung und Konvertierung des Drive-Links
+    // 1. URL prüfen und extrahieren
     const imageUrl = getEmbeddableDriveLink(event.description);
     
-    // NEU: KONSOLE 1 - Zeigt die ursprüngliche Beschreibung an
-    console.log("Originale Event-Beschreibung:", event.description);
+    // 2. Beschreibung bereinigen (Link entfernen)
+    let cleanedDescription = event.description;
     
-    // NEU: KONSOLE 2 - Zeigt die umgewandelte Bild-URL an
-    console.log("Extrahierte Embed-URL (sollte 'uc?export=view&id=...' enthalten):", imageUrl);
+    // Regex, um den gesamten Drive-Link (file/d/... oder open?id=...) zu finden
+    // Wir suchen nach der vollen URL, die mit https://drive.google.com beginnt
+    const fullLinkRegex = /https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)[a-zA-Z0-9_-]+(?:[^ \n\r]*)/g;
     
-
+    if (imageUrl) {
+        // Ersetze den gefundenen Link (und alles, was daran hängt, wie &authuser=1) durch einen leeren String
+        cleanedDescription = event.description.replace(fullLinkRegex, '').trim();
+    }
+    
     // HTML für das Bild, falls vorhanden
     const imageHtml = imageUrl 
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
@@ -736,8 +740,7 @@ function showEventDetails(event) {
             </strong>
         </p>
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
-        <p>${event.description.replace(/\n/g, '<br>')}</p>
-    `;
+        <p>${cleanedDescription.replace(/\n/g, '<br>')}</p> `;
     
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
     eventModal.style.display = "block";
