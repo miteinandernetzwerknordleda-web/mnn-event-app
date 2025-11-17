@@ -99,7 +99,7 @@
     #app-header { /* Die ID header wurde zu app-header */
         background-color: #8B4513;
         color: white;
-        padding: 10px 20px; /* Padding reduziert, um Platz zu sparen */
+        padding: 5px 20px; /* Padding reduziert, um Platz zu sparen */
         display: flex; /* Flexbox für nebeneinanderliegende Elemente */
         align-items: center; /* Vertikale Zentrierung */
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -376,8 +376,6 @@
 
     <header id="app-header">
     </header>
-    ```
-	
 <div class="container">
 <header id="app-header">
     <div id="logo-container">
@@ -538,14 +536,14 @@ function fetchCalendarEvents() {
             renderEventList(dynamicEvents);
             
             // Splash Screen nach dem Laden der Events ausblenden
-            // WICHTIG: Die Verzögerung wird auf 10000ms (10 Sekunden) gesetzt
+
             setTimeout(() => {
                 splashScreen.classList.add('fade-out');
                 // Nach 1 Sekunde (entspricht der Transition im CSS) vollständig ausblenden
                 setTimeout(() => {
                     splashScreen.style.display = 'none';
-                }, 1000); 
-            }, 10000); // NEU: 10 Sekunden Verzögerung
+                }, 3000); 
+            }, 3000);
         })	
         .catch(error => {
             headerTitle.textContent = "Fehler beim Laden!";
@@ -818,19 +816,29 @@ function showEventDetails(event) {
 
 // --- 6. NAVIGATION UND START (KORRIGIERT) ---
 
-    function switchView(view) {
-        document.getElementById('events-btn').classList.remove('active');
-        document.getElementById('providers-btn').classList.remove('active');
-        searchInput.value = ''; // Wichtig: Suchfeld beim Wechsel löschen
+// --- 2. NAVIGATION UND ANSICHTEN (KORRIGIERT FÜR LOADER) ---
 
-        if (view === 'events') {
-            document.getElementById('events-btn').classList.add('active');
-            fetchCalendarEvents(); 
-        } else if (view === 'providers') {
-            document.getElementById('providers-btn').classList.add('active');
-            renderProviderList(); 
-        }
+function switchView(view) {
+    // ... (Klassen-Wechsel bleibt unverändert) ...
+    document.getElementById('events-btn').classList.remove('active');
+    document.getElementById('providers-btn').classList.remove('active');
+
+    if (view === 'events') {
+        document.getElementById('events-btn').classList.add('active');
+        // Da Events neu geladen werden könnten, bleibt die Logik in fetchCalendarEvents
+        renderEventList(dynamicEvents); 
+    } else if (view === 'providers') {
+        document.getElementById('providers-btn').classList.add('active');
+        
+        // NEU: Loader explizit ausblenden, da keine neuen Daten geladen werden
+        appLoader.style.display = 'none'; 
+        
+        renderProviderList(providers);
     }
+    // Suchfeld leeren und Filter neu anwenden
+    searchInput.value = '';
+    filterEvents();
+}
 
 window.onload = () => {
         // fetchCalendarEvents() wird jetzt hier direkt aufgerufen
