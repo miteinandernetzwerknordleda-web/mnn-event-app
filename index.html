@@ -291,6 +291,32 @@
         
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
+	
+/* 6. MODAL STIL (Ergänzung für Bilder) */
+
+.event-image-container {
+    text-align: center;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    /* Füge diese Regel hinzu, um sicherzustellen, dass die Höhe durch den Inhalt bestimmt wird */
+    height: auto; 
+}
+
+.event-image {
+    /* Begrenzt die Bildgröße auf die Modalfensterbreite */
+    max-width: 100%; 
+    
+    /* Wichtig: Erzwingt korrekte Höhenskalierung und ignoriert kleine Standardwerte */
+    height: auto !important; 
+    
+    display: block; 
+    
+    /* Optional: Füge eine kleine Mindesthöhe hinzu, falls height: auto ignoriert wird */
+    min-height: 50px; 
+}
+	
     }
 </style>
 </head>
@@ -634,32 +660,61 @@ function renderFilteredProviderList(providersToRender) {
     });
 }
 
-// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (KORRIGIERT: SICHERE LINKFARBE) ---
+// --- VERBESSERTE FUNKTION: Drive Link für Anzeige vorbereiten ---
+
+/**
+ * Sucht nach einem Google Drive Link in der Beschreibung und konvertiert ihn
+ * in ein embed-fähiges Format. Jetzt kompatibel mit 'file/d/...' UND 'open?id=...'.
+ */
+function getEmbeddableDriveLink(description) {
+    // SUCHT NACH DER ID, ENTWEDER IM PFAD ODER HINTER id=. 
+    // Der Ausdruck ([^&]+) stellt sicher, dass die ID bis zum nächsten '&' oder zum Ende des Strings erfasst wird.
+    const fileIdRegex = /(?:file\/d\/|id=)([^&]+)/;
+    const match = description.match(fileIdRegex);
+    
+    if (match && match[1]) {
+        const fileId = match[1];
+        // Entfernt ggf. nachfolgende Leerzeichen oder andere störende Zeichen
+        const cleanedFileId = fileId.trim(); 
+        
+        // Konvertiert die File ID in den öffentlichen Embed-Link-Endpunkt
+        return `https://drive.google.com/uc?export=view&id=${cleanedFileId}`;
+    }
+    return null;
+}
+
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (KORRIGIERT: DEBUG) ---
 
 function showEventDetails(event) {
     const provider = providers.find(p => p.id == event.providerId);
     const providerName = provider ? provider.name : "Unbekannter Anbieter";
-    
-    // Anbieterfarbe für Akzente (z.B. Trennlinie)
     const providerColor = provider ? provider.color : '#8B4513'; 
-    
-    // NEU: Festlegen der sicheren Lesefarbe (Header-Braun) für alle Textelemente im Modal
     const safeLinkColor = '#8B4513'; 
 
-    // Anzeige der Zeit anpassen
-    const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : event.date;
+    // Prüfung und Konvertierung des Drive-Links
+    const imageUrl = getEmbeddableDriveLink(event.description);
+    
+    // NEU: KONSOLE 1 - Zeigt die ursprüngliche Beschreibung an
+    console.log("Originale Event-Beschreibung:", event.description);
+    
+    // NEU: KONSOLE 2 - Zeigt die umgewandelte Bild-URL an
+    console.log("Extrahierte Embed-URL (sollte 'uc?export=view&id=...' enthalten):", imageUrl);
+    
 
-    // Google Maps URL erstellen
+    // HTML für das Bild, falls vorhanden
+    const imageHtml = imageUrl 
+        ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
+        : ''; 
+
+    // ... (Rest der Logik bleibt unverändert) ...
+    const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : event.date;
     const locationEncoded = encodeURIComponent(event.location);
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${locationEncoded}`; 
-
-    // 1. Link-Text erstellen (Verwendet sichere Farbe!)
     const locationLink = `<a href="${mapsUrl}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
 
-    // Inhalt des Modals zusammenbauen
     const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
-    // Wir leeren den Inhalt (außer dem Schließkreuz, das bleibt)
+    // Wir leeren den Inhalt
     Array.from(modalContent.children).forEach(child => {
         if (!child.classList.contains('close')) {
             child.remove();
@@ -669,6 +724,7 @@ function showEventDetails(event) {
     // NEUE STRUKTUR HINZUFÜGEN
     const detailsHTML = `
         <h2 style="color: #8B4513;">${event.title}</h2> 
+        ${imageHtml}
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
         
@@ -683,33 +739,9 @@ function showEventDetails(event) {
         <p>${event.description.replace(/\n/g, '<br>')}</p>
     `;
     
-    // Füge den neuen Inhalt nach dem Schließ-Span ein
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
-    
     eventModal.style.display = "block";
 }
-
-    function showVeranstalterDetails(providerId) {
-        const provider = providers.find(p => p.id == providerId);
-        if (!provider) return;
-
-        eventModal.style.display = "none"; 
-
-        document.getElementById('modalProviderName').textContent = provider.name;
-        document.getElementById('modalProviderContact').textContent = provider.contact;
-        document.getElementById('modalProviderInfo').textContent = provider.info;
-        
-        const providerLinkElement = document.getElementById('modalProviderLink');
-        if (provider.link) {
-            providerLinkElement.href = provider.link;
-            providerLinkElement.textContent = `Zur Webseite von ${provider.name}`;
-            providerLinkElement.style.display = 'block';
-        } else {
-            providerLinkElement.style.display = 'none';
-        }
-
-        veranstalterModal.style.display = "block";
-    }
 
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = "none";
