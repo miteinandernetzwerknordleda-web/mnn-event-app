@@ -9,6 +9,49 @@
     box-sizing: border-box; /* WICHTIG: Stellt sicher, dass Padding und Border zur Gesamtbreite gehören */
 }
 /* 1. GLOBALE STILE */
+
+   
+    #splashScreen {
+        position: fixed; /* Fixiert auf dem Bildschirm */
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #f4f7f6; /* Passend zum Body-Hintergrund */
+        display: flex; /* Für Zentrierung */
+        flex-direction: column; /* Vertikal anordnen */
+        justify-content: center; /* Vertikal zentrieren */
+        align-items: center; /* Horizontal zentrieren */
+        z-index: 9999; /* Immer ganz oben */
+        color: #8B4513; /* Titel-Farbe */
+        font-size: 1.2em;
+        text-align: center;
+        transition: opacity 1s ease-out; /* Weiches Ausblenden */
+    }
+
+    #splashScreen.fade-out {
+        opacity: 0;
+        pointer-events: none; /* Macht den Screen nach dem Ausblenden "unklickbar" */
+    }
+
+	.splash-logo {
+        max-width: 400px;
+        height: auto;
+        margin-bottom: 20px;
+        border-radius: 15px; /* NEU: Rundet die Ecken ab (z.B. 15px Radius) */
+    }	
+	
+    #splashScreen h1 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.8em;
+    }
+
+    #splashScreen p {
+        font-style: italic;
+        color: #666;
+    }
+
     body {
         font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
@@ -323,6 +366,18 @@
 </head>
 <body>
 
+<div id="splashScreen">
+    <img src="logo.png" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
+    <h1>
+        EventApp
+    </h1>
+    <p>Lade Events...</p>
+</div>
+
+    <header id="app-header">
+    </header>
+    ```
+	
 <div class="container">
 <header id="app-header">
     <div id="logo-container">
@@ -398,6 +453,7 @@
     const eventModal = document.getElementById('eventModal');
     const veranstalterModal = document.getElementById('veranstalterModal');
 	const appLoader = document.getElementById('app-loader');
+	const splashScreen = document.getElementById('splashScreen');
     let dynamicEvents = []; 
 
     // --- 2. HILFSFUNKTIONEN ---
@@ -413,12 +469,12 @@
         return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
     }
 
-// --- 3. DATENABRUF VON GOOGLE KALENDER (KORRIGIERT FÜR LOADER) ---
+// --- 3. DATENABRUF VON GOOGLE KALENDER (KORRIGIERT FÜR SPLASH SCREEN) ---
 
 function fetchCalendarEvents() {
-    headerTitle.textContent = "Veranstaltungen"; // Titel bleibt statisch
+    headerTitle.textContent = "Veranstaltungen"; 
     contentDiv.innerHTML = ''; 
-    appLoader.style.display = 'block'; // Loader anzeigen
+    // appLoader.style.display = 'block'; // DEAKTIVIERT: Splash Screen übernimmt dies initial
 
     const twoWeeksFromNow = new Date();
     twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
@@ -429,14 +485,14 @@ function fetchCalendarEvents() {
     fetch(API_URL)
         .then(response => {
             if (!response.ok) {
-                appLoader.style.display = 'none'; // Bei Fehler ausblenden
+                appLoader.style.display = 'none'; 
+                splashScreen.style.display = 'none'; // Splashscreen auch bei Fehler ausblenden
                 throw new Error(`HTTP error! status: ${response.status}. API-Schlüssel oder Kalender-ID prüfen.`);
             }
             return response.json(); 
         })
         .then(data => {
             dynamicEvents = data.items.map((item, index) => {
-                // ... (Ihre gesamte Event-Mapping Logik bleibt hier unverändert) ...
                 const rawTitle = item.summary || '';
                 const providerId = extractProviderId(rawTitle);
                 
@@ -478,9 +534,19 @@ function fetchCalendarEvents() {
                     providerId: providerId,
                 };
             });
-            appLoader.style.display = 'none'; // Loader ausblenden, da Daten da sind
-            renderEventList();
-        })
+			appLoader.style.display = 'none'; 
+            renderEventList(dynamicEvents);
+            
+            // Splash Screen nach dem Laden der Events ausblenden
+            // WICHTIG: Die Verzögerung wird auf 10000ms (10 Sekunden) gesetzt
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                // Nach 1 Sekunde (entspricht der Transition im CSS) vollständig ausblenden
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 1000); 
+            }, 10000); // NEU: 10 Sekunden Verzögerung
+        })	
         .catch(error => {
             headerTitle.textContent = "Fehler beim Laden!";
             contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: ${error.message}.</p>`;
@@ -766,13 +832,11 @@ function showEventDetails(event) {
         }
     }
 
-	window.onload = () => {
-        fetchCalendarEvents();
-        // Stellen Sie sicher, dass die Buttons korrekt funktionieren
+window.onload = () => {
+        // fetchCalendarEvents() wird jetzt hier direkt aufgerufen
+        fetchCalendarEvents(); 
         document.getElementById('events-btn').onclick = () => switchView('events');
         document.getElementById('providers-btn').onclick = () => switchView('providers');
-        
-        // NEU: Listener für die Sucheingabe
         searchInput.addEventListener('input', filterEvents);
     };
 
