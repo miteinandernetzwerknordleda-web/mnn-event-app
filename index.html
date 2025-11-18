@@ -6,39 +6,38 @@
     <title>Lokale Events App</title>
 <style>
 * {
-    box-sizing: border-box; /* WICHTIG: Stellt sicher, dass Padding und Border zur Gesamtbreite gehören */
+    box-sizing: border-box; 
 }
 /* 1. GLOBALE STILE */
 
-   
     #splashScreen {
-        position: fixed; /* Fixiert auf dem Bildschirm */
+        position: fixed; 
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: #f4f7f6; /* Passend zum Body-Hintergrund */
-        display: flex; /* Für Zentrierung */
-        flex-direction: column; /* Vertikal anordnen */
-        justify-content: center; /* Vertikal zentrieren */
-        align-items: center; /* Horizontal zentrieren */
-        z-index: 9999; /* Immer ganz oben */
-        color: #8B4513; /* Titel-Farbe */
+        background-color: #f4f7f6; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: center; 
+        align-items: center; 
+        z-index: 9999; 
+        color: #8B4513; 
         font-size: 1.2em;
         text-align: center;
-        transition: opacity 1s ease-out; /* Weiches Ausblenden */
+        transition: opacity 1s ease-out; 
     }
 
     #splashScreen.fade-out {
         opacity: 0;
-        pointer-events: none; /* Macht den Screen nach dem Ausblenden "unklickbar" */
+        pointer-events: none; 
     }
 
 	.splash-logo {
         max-width: 400px;
         height: auto;
         margin-bottom: 20px;
-        border-radius: 15px; /* NEU: Rundet die Ecken ab (z.B. 15px Radius) */
+        border-radius: 15px; 
     }	
 	
     #splashScreen h1 {
@@ -51,32 +50,40 @@
         font-style: italic;
         color: #666;
     }
+    
+    /* Copyright Styling */
+    #splash-copyright {
+        position: absolute; 
+        bottom: 20px; 
+        width: 100%;
+        text-align: center;
+        font-size: 0.8em;
+        color: #666;
+    }
+
 
     body {
         font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #f4f7f6; 
+        background-color: #f4f7f6;
         color: #333;
         line-height: 1.6;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
-        
-        overflow-y: scroll; 
-        
-        /* NEU: Horizontales Scrollen verbieten */
-        overflow-x: hidden; 
+        overflow-y: scroll;
+        overflow-x: hidden;
     }
 
 	.spinner {
         border: 4px solid rgba(0, 0, 0, 0.1);
-        border-left-color: #8B4513; /* Die Farbe des Header-Braun verwenden */
+        border-left-color: #8B4513; 
         border-radius: 50%;
         width: 40px;
         height: 40px;
         animation: spin 1s linear infinite;
-        margin: 0 auto; /* Zentrieren des Spinners */
+        margin: 0 auto; 
     }
 
     @keyframes spin {
@@ -84,7 +91,7 @@
         100% { transform: rotate(360deg); }
     }
 
-/* 2. HEADER UND CONTAINER (Aktualisiert für Logo) */
+/* 2. HEADER UND CONTAINER */
 
     #app-container {
         max-width: 600px;
@@ -96,12 +103,12 @@
         box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
     }
 
-    #app-header { /* Die ID header wurde zu app-header */
+    #app-header { 
         background-color: #8B4513;
         color: white;
-        padding: 5px 20px; /* Padding reduziert, um Platz zu sparen */
-        display: flex; /* Flexbox für nebeneinanderliegende Elemente */
-        align-items: center; /* Vertikale Zentrierung */
+        padding: 10px 20px; 
+        display: flex; 
+        align-items: center; 
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         position: sticky;
         top: 0;
@@ -109,27 +116,27 @@
     }
 
     #app-logo {
-        height: 40px; /* Höhe des Logos definieren */
+        height: 40px; 
         width: auto;
-        margin-right: 15px; /* Abstand zum Titel */
+        margin-right: 15px; 
+        vertical-align: middle; 
     }
     
-    #headerTitle { /* H1-Tag für den Titel */
+    #headerTitle { 
         margin: 0;
         padding: 0;
-        font-size: 1.5em; /* Etwas kleiner für besseres Layout */
+        font-size: 1.5em; 
         font-weight: bold;
         color: white;
-        flex-grow: 1; /* Nimmt den restlichen Platz ein */
-        text-align: left; /* Text links vom Logo */
+        flex-grow: 1; 
+        text-align: left; 
     }
 
 	#search-container {
         max-width: 600px;
         width: 100%;
-        margin: 0 auto;
         padding: 10px 20px;
-        background-color: #f4f7f6; /* Heller Hintergrund */
+        background-color: #f4f7f6; 
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         z-index: 5;
     }
@@ -138,36 +145,73 @@
         width: 100%;
         padding: 10px 15px;
         border: 1px solid #ddd;
-        border-radius: 20px; /* Abgerundete Ecken */
+        border-radius: 20px; 
         font-size: 1em;
-        box-sizing: border-box; /* Wichtig, damit das Padding die Breite nicht sprengt */
+        box-sizing: border-box; 
         transition: border-color 0.3s;
     }
 
     #searchInput:focus {
         outline: none;
-        border-color: #8B4513; /* Fokus-Farbe: Braun */
+        border-color: #8B4513; 
         box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
     }
+
+/* --- KATEGORIE-FILTER-STILE (Aktiviert) --- */
+#filter-container {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 20px 10px; 
+    background-color: #f4f7f6;
+    overflow-x: auto; 
+    white-space: nowrap; 
+    -webkit-overflow-scrolling: touch; 
+}
+
+.filter-btn {
+    display: inline-block;
+    padding: 5px 10px;
+    margin-right: 8px;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    background-color: white;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+    color: #333;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    background-color: #eee;
+}
+
+.filter-btn.selected {
+    background-color: #8B4513;
+    color: white;
+    border-color: #8B4513;
+    font-weight: bold;
+}
+/* --- ENDE KATEGORIE-FILTER-STILE --- */
+
 
 /* 3. KARTEN-STIL */
     .card {
         background: white;
         padding: 15px;
-        border-radius: 8px; 
-        border: 1px solid #ddd; /* NEU: Dünner, hellgrauer Rahmen */
-        border-left: 10px solid #007bff; /* Behält den farbigen Rand */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); 
+        border-radius: 8px;
+        border: 1px solid #ddd; 
+        border-left: 10px solid #007bff; 
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         transition: transform 0.2s, box-shadow 0.2s;
         cursor: pointer;
     }
 
 	.card:hover {
         transform: translateY(-2px);
-        /* NEU: Box-Shadow verwendet die dynamisch gesetzte CSS-Variable */
-        /* Wir fügen einen leichten Schatten und eine Kontur in der Event-Farbe hinzu */
-        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1), 
-                    0 0 0 2px var(--event-color); 
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1),
+                    0 0 0 2px var(--event-color);
     }
 
     .card h3 {
@@ -183,40 +227,33 @@
         color: #000000;
     }
 
-/* 3. KARTEN-STIL (Ergänzung für Datum) */
+/* 3. KARTEN-STIL (Ergänzung für Datum & Abstand) */
     
-    /* Der eigentliche Inhalt der Karte */
     .card-content {
-        flex-grow: 1; 
-        /* NEU: Abstand von 15px auf 25px erhöht */
-        padding-left: 25px; 
+        flex-grow: 1;
+        padding-left: 20px;
     }
 
-    /* Container für das Tagesdatum und den Wochentag */
     .date-container {
         display: flex;
-        flex-direction: column; 
+        flex-direction: column;
         align-items: center;
         text-align: center;
-        width: 40px; 
-        /* NEU: margin-right auf 0px gesetzt (zieht es nicht mehr nach links) */
-        margin-right: 0px; 
+        width: 40px;
+        margin-right: 0px;
         color: #333;
-        padding-top: 5px; 
+        padding-top: 5px;
     }
 
-	/* Große Zahl für den Tag */
-    .date-day-num {
+	.date-day-num {
         font-size: 1.8em;
-        font-weight: 700; 
+        font-weight: 700;
         line-height: 1;
-        color: #8B4513; 
+        color: #8B4513;
     }
 
-    /* Kurzes Kürzel für den Wochentag */
     .date-day-short {
-        /* NEU: Obere Marge hinzugefügt (z.B. 4px) */
-        margin-top: 12px; 
+        margin-top: 12px;
         font-size: 1.2em;
         font-weight: 600;
         text-transform: uppercase;
@@ -232,7 +269,7 @@
         max-width: 600px;
         margin: 0 auto;
         display: flex;
-        background-color: #343a40; /* Dunkle Navigationsleiste */
+        background-color: #343a40; 
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
         border-top-left-radius: 12px;
         border-top-right-radius: 12px;
@@ -262,7 +299,7 @@
         font-weight: bold;
     }
 
-/* 5. MODAL-STIL (KORRIGIERTE, SICHERE VERSION) */
+/* 5. MODAL-STIL */
 
     .modal {
         display: none;
@@ -277,13 +314,13 @@
     }
 
     .modal-content {
-        /* WICHTIG: position: relative, padding-top: 40px und dergleichen ENTFERNEN */
         background-color: #fefefe;
         margin: 15% auto;
-        padding: 25px; /* Standard-Padding wiederhergestellt */
+        padding: 25px; 
         border-radius: 10px;
         width: 90%;
-        max-width: 450px;
+        /* ERHÖHT: Max-Breite auf die App-Container-Größe (600px) angehoben */
+        max-width: 580px; 
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         animation-name: animatetop;
         animation-duration: 0.4s
@@ -296,12 +333,12 @@
     
     .close {
         color: #555;
-        float: right; /* Nur float: right; nutzen */
-        font-size: 36px; /* Bleibt groß */
-        font-weight: 300; 
+        float: right; 
+        font-size: 36px; 
+        font-weight: 300;
         line-height: 1;
-        margin-top: -10px; /* Leichte Korrektur nach oben */
-        margin-right: -5px; /* Leichte Korrektur nach rechts */
+        margin-top: -10px; 
+        margin-right: -5px; 
     }
 
     .close:hover,
@@ -311,7 +348,7 @@
         cursor: pointer;
     }
 
-    /* 6. RESPONSIVE ANPASSUNGEN (für kleinere Bildschirme) */
+/* 6. RESPONSIVE ANPASSUNGEN (für kleinere Bildschirme) */
     @media (max-width: 600px) {
         #app-container {
             padding-bottom: 70px;
@@ -322,43 +359,35 @@
         }
 	.modal-content {
         background-color: #fefefe;
-        /* NEU: Maximale Breite für Mobile sicherstellen */
-        margin: 10% auto; /* 10% Abstand oben, zentriert horizontal */
+        margin: 10% auto; 
         padding: 20px;
         border: 1px solid #888;
         border-radius: 10px;
-        /* WICHTIG für Mobile: Breite auf 90% des Viewports setzen, 
-           aber nie breiter als 600px */
-        width: 90%; 
-        max-width: 600px; 
-        
+        width: 90%;
+        /* KORRIGIERT: Muss kleiner sein als 600px, um Puffer zu haben */
+        max-width: 580px; 
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
 	
 /* 6. MODAL STIL (Ergänzung für Bilder) */
 
     .event-image-container {
-        text-align: center; /* WICHTIG: Zentriert das Bild horizontal */
-        margin: 15px auto; /* 15px oben/unten, auto zentriert den Container selbst */
-        max-width: 100%; /* Sicherstellen, dass der Container nicht breiter als das Modal ist */
-        
-        /* DIESEN RAHMEN ENTFERNEN */
-        /* border: 1px solid #ddd; */ 
-        
+        text-align: center; 
+        margin: 15px auto; 
+        /* WICHTIG: Soll die volle Breite des Modal-Inhalts nutzen */
+        max-width: 100%; 
         border-radius: 5px;
         overflow: hidden;
-        height: auto; 
+        height: auto;
     }
-
+    
     .event-image {
-        max-width: 100%; 
-        height: auto !important; 
-        display: block; 
-        min-height: 50px; 
-        
-        /* DIESEN RAHMEN HABE ICH IN DIE CONTAINER-REGEL GESETZT. 
-           Wenn Sie hier einen Rahmen haben, entfernen Sie ihn. */
-        border: none; 
+        max-width: 100%;
+        width: 100%; 
+        height: auto;
+        display: block;
+        min-height: 50px;
+        border: none;
     }
 	
     }
@@ -372,23 +401,26 @@
         EventApp
     </h1>
     <p>Lade Events...</p>
+    <div id="splash-copyright">
+        (c) 2025 Miteinander Netzwerk Nordleda
+    </div>
 </div>
 
-    <header id="app-header">
-    </header>
 <div class="container">
 <header id="app-header">
     <div id="logo-container">
-        <img id="app-logo" src="logo.png" alt="Vereins Logo"> 
+        <img id="app-logo" src="logo.png" alt="Vereins Logo">
     </div>
-    <h1 id="headerTitle">Veranstaltungen</h1> 
+    <h1 id="headerTitle">Veranstaltungen</h1>
 </header>
 
 <div id="search-container">
     <input type="text" id="searchInput" placeholder="Events, Anbieter oder Ort suchen...">
 </div>
 
-<div id="app-loader" style="text-align: center; padding-top: 50px;">
+<div id="filter-container" style="display: none;">
+    </div>
+<div id="app-loader" style="text-align: center; padding-top: 50px; display: none;">
     <div class="spinner"></div>
     <p style="margin-top: 15px; color: #666;">Veranstaltungen werden geladen...</p>
 </div>
@@ -398,13 +430,13 @@
 
 <div id="eventModal" class="modal">
     <div class="modal-content">
-        <span class="close" onclick="closeModal('eventModal')">&times;</span> 
+        <span class="close" onclick="closeModal('eventModal')">×</span>
         </div>
 </div>
 
 <div id="veranstalterModal" class="modal">
     <div class="modal-content" id="veranstalterDetail">
-        <span class="close" onclick="closeModal('veranstalterModal')">&times;</span>
+        <span class="close" onclick="closeModal('veranstalterModal')">×</span>
         
         <h3 id="modalProviderName"></h3>
         <p><strong>Kontakt:</strong> <span id="modalProviderContact"></span></p>
@@ -423,10 +455,11 @@
 
 <script>
     // --- 1. KONFIGURATION (HIER MÜSSEN SIE ERSETZEN!) ---
-    // Siehe Anleitung von Google zur Erstellung eines API-Schlüssels und zur Kalender-ID
-    const API_KEY = 'AIzaSyDDsCuRzCYH-U3tjoTu1VCiv641zY7K4Cc'; 
-    const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com'; 
-// Basisdaten für die Anbieter (Verwenden Sie Eindeutige IDs!)
+    const API_KEY = 'AIzaSyDDsCuRzCYH-U3tjoTu1VCiv641zY7K4Cc';
+    const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
+    const MIN_SPLASH_DURATION = 4000; // 4 Sekunden Mindestdauer
+    
+    // Basisdaten für die Anbieter
     const providers = [
         { id: 1, name: "TSV Nordleda", contact: "Jürgen Hoberg Tel. 04758-546", info: "Der lokale Sportverein mit verschiedenen Angeboten", link: "https://www.nordleda.de/vereine-und-choere/tsv-nordleda-ev/", color: "#a4bdfc" },
         { id: 2, name: "DRK Nordleda", contact: "Anja von Bebern Tel. 04758-679", info: "Der DRK Ortsverein bietet mit dem Arbeitskreis viele verschiedene Veranstaltungen", link: "https://www.svnordleda.de/", color: "#ff887c" },
@@ -442,7 +475,6 @@
 		{ id: 12, name: "Feuerwehr Nordleda", contact: "info@feuerwehr-nordleda.de", info: "Freiwillige Feuerwehr und Jugendfeuerwehr Nordleda", link: "https://www.instagram.com/ffw_nordleda/?hl=de", color: "#FF0000" },
 		{ id: 99, name: "Freier Anbieter", contact: "Evtl. über die Veranstaltungsbeschreibung", info: "verschiedene Anbieter von Veranstaltungen", color: "#F8F8FF" }
 
-		// ... Fügen Sie alle weiteren Anbieter hier mit einer eindeutigen ID ein ...
     ];
 	
 	const contentDiv = document.getElementById('app-content');
@@ -452,7 +484,9 @@
     const veranstalterModal = document.getElementById('veranstalterModal');
 	const appLoader = document.getElementById('app-loader');
 	const splashScreen = document.getElementById('splashScreen');
-    let dynamicEvents = []; 
+    let dynamicEvents = [];
+    let currentFilterId = null; 
+    let startTime; // Startzeitpunkt für die Messung der Splash-Dauer
 
     // --- 2. HILFSFUNKTIONEN ---
 
@@ -466,28 +500,62 @@
         if (!titleString) return 'Unbekanntes Event';
         return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
     }
+    
+// --- FUNKTION: Drive Link für Anzeige vorbereiten (FIXED) ---
 
-// --- 3. DATENABRUF VON GOOGLE KALENDER (KORRIGIERT FÜR SPLASH SCREEN) ---
+function getEmbeddableDriveLink(description) {
+    if (!description) return null;
+    const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
+    const match = description.match(fileIdRegex);
+    
+    if (match && match[1]) {
+        const fileId = match[1].trim();
+        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`; 
+    }
+    return null;
+}
+
+// --- 3. DATENABRUF VON GOOGLE KALENDER (FIX FÜR SPLASH-BLOCKADE) ---
 
 function fetchCalendarEvents() {
-    headerTitle.textContent = "Veranstaltungen"; 
-    contentDiv.innerHTML = ''; 
-    // appLoader.style.display = 'block'; // DEAKTIVIERT: Splash Screen übernimmt dies initial
+    startTime = Date.now(); // Startzeit speichern
 
-    const twoWeeksFromNow = new Date();
-    twoWeeksFromNow.setDate(twoWeeksFromNow.getDate() + 14);
-    const timeMaxParam = twoWeeksFromNow.toISOString();
+    const hideSplash = () => {
+        const elapsedTime = Date.now() - startTime;
+        const remainingTime = MIN_SPLASH_DURATION - elapsedTime;
+
+        if (remainingTime > 0) {
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 1000); 
+            }, remainingTime);
+        } else {
+             splashScreen.classList.add('fade-out');
+             setTimeout(() => {
+                 splashScreen.style.display = 'none';
+             }, 1000); 
+        }
+    };
+
+    headerTitle.textContent = "Veranstaltungen";
+    contentDiv.innerHTML = '';
+
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setDate(threeMonthsFromNow.getDate() + 90);
+    const timeMaxParam = threeMonthsFromNow.toISOString();
 
     const API_URL = `https://www.googleapis.com/calendar/v3/calendars/${CALENDAR_ID}/events?key=${API_KEY}&timeMin=${(new Date()).toISOString()}&timeMax=${timeMaxParam}&singleEvents=true&orderBy=startTime`;
 
     fetch(API_URL)
         .then(response => {
             if (!response.ok) {
-                appLoader.style.display = 'none'; 
-                splashScreen.style.display = 'none'; // Splashscreen auch bei Fehler ausblenden
+                appLoader.style.display = 'none';
+                hideSplash(); 
                 throw new Error(`HTTP error! status: ${response.status}. API-Schlüssel oder Kalender-ID prüfen.`);
             }
-            return response.json(); 
+            return response.json();
         })
         .then(data => {
             dynamicEvents = data.items.map((item, index) => {
@@ -498,12 +566,12 @@ function fetchCalendarEvents() {
                 const eventStart = new Date(item.start.dateTime || item.start.date);
                 
                 let startDate;
-                let endDate = ''; 
+                let endDate = '';
 
                 if (isTimedEvent) {
                     startDate = eventStart.toLocaleDateString('de-DE', {
                         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                    }).trim(); 
+                    }).trim();
 
                     endDate = new Date(item.end.dateTime).toLocaleTimeString('de-DE', {
                         hour: '2-digit', minute: '2-digit'
@@ -515,69 +583,67 @@ function fetchCalendarEvents() {
                     }).trim();
                 }
 
-                const dayOfMonth = eventStart.getDate(); 
+                const dayOfMonth = eventStart.getDate();
                 const dayOfWeekShort = eventStart.toLocaleDateString('de-DE', {
                     weekday: 'short'
                 }).slice(0, 2);
 
                 return {
-                    id: index, 
-                    title: cleanTitle(rawTitle), 
-                    date: startDate, 
-                    endDate: endDate, 
-                    dayOfMonth: dayOfMonth, 
-                    dayOfWeekShort: dayOfWeekShort, 
+                    id: index,
+                    title: cleanTitle(rawTitle),
+                    date: startDate,
+                    endDate: endDate,
+                    dayOfMonth: dayOfMonth,
+                    dayOfWeekShort: dayOfWeekShort,
                     location: item.location || 'Keine Angabe',
                     description: item.description || 'Keine weitere Beschreibung vorhanden.',
                     providerId: providerId,
                 };
             });
-			appLoader.style.display = 'none'; 
+			appLoader.style.display = 'none';
+            // Zuerst die Filter-Buttons erstellen, dann die Liste rendern
+            createFilterButtons(); 
             renderEventList(dynamicEvents);
             
-            // Splash Screen nach dem Laden der Events ausblenden
-
-            setTimeout(() => {
-                splashScreen.classList.add('fade-out');
-                // Nach 1 Sekunde (entspricht der Transition im CSS) vollständig ausblenden
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                }, 3000); 
-            }, 3000);
+            // Standardmäßig Filter auf "Alle Events" setzen
+            applyCategoryFilter(null);
+            
+            hideSplash(); 
         })	
         .catch(error => {
             headerTitle.textContent = "Fehler beim Laden!";
             contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: ${error.message}.</p>`;
             console.error("Error fetching events:", error);
+            hideSplash(); 
         });
 }
 	
-// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (KORRIGIERT FÜR DATUM-SIDEBAR) ---
+// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN ---
 
-	function renderEventList() {
+	function renderEventList(eventsToRender = dynamicEvents) {
     headerTitle.textContent = "Veranstaltungen";
-    contentDiv.innerHTML = ''; 
-    if (dynamicEvents.length === 0) {
+    contentDiv.innerHTML = '';
+    if (eventsToRender.length === 0) {
         contentDiv.innerHTML = `<p style="margin: 20px;">Keine zukünftigen Veranstaltungen gefunden.</p>`;
         return;
     }
 
-    dynamicEvents.forEach(event => {
+    eventsToRender.forEach(event => {
         const provider = providers.find(p => p.id == event.providerId);
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
         
-        const cardColor = provider ? provider.color : '#aaaaaa'; 
+        const cardColor = provider ? provider.color : '#aaaaaa';
 
         const card = document.createElement('div');
         card.className = 'card';
         card.style.borderLeftColor = cardColor;
-        card.style.setProperty('--event-color', cardColor); 
         
-        // NEU: Innerer Flex-Container
-        card.style.display = 'flex'; 
-        card.style.alignItems = 'flex-start'; // Wichtig für vertikale Ausrichtung
+        // WICHTIG: Setzt die CSS-Variable, die für den Hover-Effekt benötigt wird.
+        card.style.setProperty('--event-color', cardColor);
         
-        // NEU: Datums-Container
+        card.style.display = 'flex';
+        card.style.alignItems = 'flex-start'; 
+        
         card.innerHTML = `
             <div class="date-container">
                 <div class="date-day-num">${event.dayOfMonth}</div>
@@ -595,29 +661,88 @@ function fetchCalendarEvents() {
     });
 }
 
-    function renderProviderList() {
+// --- FUNKTIONEN FÜR KATEGORIE-FILTER ---
+
+function createFilterButtons() {
+    const filterContainer = document.getElementById('filter-container');
+    filterContainer.innerHTML = '';
+    
+    const allBtn = document.createElement('span');
+    allBtn.className = 'filter-btn selected';
+    allBtn.textContent = 'Alle Events';
+    allBtn.onclick = () => {
+        searchInput.value = ''; // Suchfeld leeren beim Filterwechsel
+        applyCategoryFilter(null);
+    };
+    filterContainer.appendChild(allBtn);
+
+    providers.forEach(provider => {
+        if (provider.id !== 99 && provider.id !== 11) {
+            const btn = document.createElement('span');
+            btn.className = 'filter-btn';
+            btn.textContent = provider.name;
+            btn.onclick = () => {
+                searchInput.value = ''; // Suchfeld leeren beim Filterwechsel
+                applyCategoryFilter(provider.id);
+            };
+            filterContainer.appendChild(btn);
+        }
+    });
+}
+
+function applyCategoryFilter(providerId) {
+    currentFilterId = providerId;
+    
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('selected'));
+    
+    let targetButton;
+
+    if (providerId === null) {
+        // 'Alle Events' Button auswählen
+        targetButton = document.querySelector('#filter-container .filter-btn:first-child'); 
+    } else {
+        // Den spezifischen Anbieter-Button auswählen
+        targetButton = Array.from(document.querySelectorAll('.filter-btn')).find(btn => btn.textContent === providers.find(p => p.id === providerId)?.name);
+    }
+    
+    if (targetButton) {
+        targetButton.classList.add('selected');
+    }
+
+    let filtered;
+    if (providerId === null) {
+        filtered = dynamicEvents;
+    } else {
+        filtered = dynamicEvents.filter(event => event.providerId === providerId);
+    }
+
+    renderEventList(filtered);
+}
+// --- ENDE FUNKTIONEN FÜR KATEGORIE-FILTER ---
+
+
+    function renderProviderList(providersToRender = providers) {
         headerTitle.textContent = "Anbieter";
-        contentDiv.innerHTML = ''; 
-        providers.forEach(provider => {
+        contentDiv.innerHTML = '';
+        
+        // Filterleiste ausblenden
+        document.getElementById('filter-container').style.display = 'none';
+
+        providersToRender.forEach(provider => {
             const card = document.createElement('div');
             card.className = 'card';
             
-            // Anpassung der Karte an die Flexbox-Struktur der Events:
-            card.style.display = 'flex'; 
+            card.style.display = 'flex';
             card.style.alignItems = 'flex-start';
             
             const cardColor = provider.color || '#aaaaaa';
             
-            // 1. Randfarbe setzen
-            card.style.borderLeftColor = cardColor; 
+            card.style.borderLeftColor = cardColor;
+            card.style.setProperty('--event-color', cardColor);
             
-            // 2. WICHTIG: Die Farbe für den Hover-Effekt als CSS-Variable setzen!
-            card.style.setProperty('--event-color', cardColor); 
-            
-            // Leerer Datums-Container für Konsistenz (bleibt leer)
             card.innerHTML = `
                 <div class="date-container" style="visibility: hidden;">
-                    <div class="date-day-num">00</div> 
+                    <div class="date-day-num">00</div>
                     <div class="date-day-short">XX</div>
                 </div>
                 <div class="card-content">
@@ -630,129 +755,60 @@ function fetchCalendarEvents() {
         });
     }
 
-// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (Ergänzung für Filter) ---
-
 function filterEvents() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     
     if (document.getElementById('events-btn').classList.contains('active')) {
-        // Filterlogik für Events
-        const filteredEvents = dynamicEvents.filter(event => {
+        
+        const eventsToSearch = dynamicEvents;
+
+        const filteredEvents = eventsToSearch.filter(event => {
             const provider = providers.find(p => p.id == event.providerId);
             const providerName = provider ? provider.name.toLowerCase() : '';
             
-            return event.title.toLowerCase().includes(searchTerm) ||
-                   event.location.toLowerCase().includes(searchTerm) ||
-                   providerName.includes(searchTerm);
+            const matchesSearchTerm = event.title.toLowerCase().includes(searchTerm) ||
+                                      event.location.toLowerCase().includes(searchTerm) ||
+                                      providerName.includes(searchTerm);
+                                      
+            // Nur Events anzeigen, die zum aktuellen Filter (falls gesetzt) ODER zum Suchbegriff passen
+            // Wenn das Suchfeld nicht leer ist, wird der aktuelle Filter ignoriert (es wird in allen Events gesucht)
+            if (searchTerm.length > 0) {
+                // Suche hat Priorität, filtert alle Events nach Suchbegriff
+                return matchesSearchTerm;
+            } else {
+                // Suchfeld leer: Es wird nach dem aktuell aktiven Kategorie-Filter gefiltert
+                return currentFilterId === null || event.providerId === currentFilterId;
+            }
         });
-        renderFilteredEventList(filteredEvents);
+        
+        // Aktualisierung des Filter-UI beim Suchen
+        if (searchTerm.length > 0) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('selected'));
+        } else {
+             // Suchfeld ist leer, Filter-Status wiederherstellen
+             applyCategoryFilter(currentFilterId);
+        }
+
+
+        renderEventList(filteredEvents);
 
     } else if (document.getElementById('providers-btn').classList.contains('active')) {
-        // Filterlogik für Anbieter
         const filteredProviders = providers.filter(provider => {
             return provider.name.toLowerCase().includes(searchTerm) ||
                    provider.info.toLowerCase().includes(searchTerm);
         });
-        renderFilteredProviderList(filteredProviders);
+        renderProviderList(filteredProviders);
     }
 }
 
-// Erstellt eine gefilterte Liste (Basierend auf renderEventList)
-function renderFilteredEventList(eventsToRender) {
-    headerTitle.textContent = "Veranstaltungen";
-    contentDiv.innerHTML = ''; 
-    if (eventsToRender.length === 0) {
-        contentDiv.innerHTML = `<p style="margin: 20px;">Keine Events gefunden, die dem Suchbegriff entsprechen.</p>`;
-        return;
-    }
-    
-    eventsToRender.forEach(event => {
-        const provider = providers.find(p => p.id == event.providerId);
-        const providerName = provider ? provider.name : "Unbekannter Anbieter";
-        const cardColor = provider ? provider.color : '#aaaaaa'; 
-        
-        // Der Rest ist identisch mit der ursprünglichen renderEventList Logik
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.borderLeftColor = cardColor;
-        card.style.setProperty('--event-color', cardColor); 
-        card.style.display = 'flex'; 
-        card.style.alignItems = 'flex-start';
-        
-        card.innerHTML = `
-            <div class="date-container">
-                <div class="date-day-num">${event.dayOfMonth}</div>
-                <div class="date-day-short">${event.dayOfWeekShort}</div>
-            </div>
-            <div class="card-content">
-                <h3>${event.title}</h3>
-                <p>Datum: ${event.date}</p>
-                <p>Anbieter: <strong>${providerName}</strong></p>
-            </div>
-        `;
-        card.onclick = () => showEventDetails(event);
-        contentDiv.appendChild(card);
-    });
-}
 
-// Erstellt eine gefilterte Liste (Basierend auf renderProviderList)
-function renderFilteredProviderList(providersToRender) {
-    headerTitle.textContent = "Anbieter";
-    contentDiv.innerHTML = ''; 
-    
-    providersToRender.forEach(provider => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.display = 'flex'; 
-        card.style.alignItems = 'flex-start';
-        
-        const cardColor = provider.color || '#aaaaaa';
-        card.style.borderLeftColor = cardColor; 
-        card.style.setProperty('--event-color', cardColor); 
-        
-        card.innerHTML = `
-            <div class="date-container" style="visibility: hidden;">
-                <div class="date-day-num">00</div> 
-                <div class="date-day-short">XX</div>
-            </div>
-            <div class="card-content">
-                <h3>${provider.name}</h3>
-                <p>Info: ${provider.info}</p>
-            </div>
-        `;
-        card.onclick = () => showVeranstalterDetails(provider.id);
-        contentDiv.appendChild(card);
-    });
-}
-
-// --- KORRIGIERTE FUNKTION: Drive Link für Anzeige vorbereiten (ALTERNATIVE URL) ---
-
-/**
- * Sucht nach einem Google Drive Link in der Beschreibung und konvertiert ihn
- * in ein embed-fähiges Format. Jetzt kompatibel mit 'file/d/...' UND 'open?id=...'.
- */
-function getEmbeddableDriveLink(description) {
-    const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
-    const match = description.match(fileIdRegex);
-    
-    if (match && match[1]) {
-        const fileId = match[1].trim(); 
-        
-        // NEU: Alternative Google Drive Bild-Embed-URL
-        // Diese URL-Struktur ist oft robuster für direkte img src Einbettungen.
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`; // sz=w600 begrenzt die Breite auf 600px
-
-    }
-    return null;
-}
-
-// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (KORRIGIERT: LINK ENTFERNEN) ---
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (FIX: MAPS & BILDER) ---
 
 function showEventDetails(event) {
     const provider = providers.find(p => p.id == event.providerId);
     const providerName = provider ? provider.name : "Unbekannter Anbieter";
-    const providerColor = provider ? provider.color : '#8B4513'; 
-    const safeLinkColor = '#8B4513'; 
+    const providerColor = provider ? provider.color : '#8B4513';
+    const safeLinkColor = '#8B4513';
 
     // 1. URL prüfen und extrahieren
     const imageUrl = getEmbeddableDriveLink(event.description);
@@ -760,45 +816,42 @@ function showEventDetails(event) {
     // 2. Beschreibung bereinigen (Link entfernen)
     let cleanedDescription = event.description;
     
-    // Regex, um den gesamten Drive-Link (file/d/... oder open?id=...) zu finden
-    // Wir suchen nach der vollen URL, die mit https://drive.google.com beginnt
     const fullLinkRegex = /https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)[a-zA-Z0-9_-]+(?:[^ \n\r]*)/g;
     
     if (imageUrl) {
-        // Ersetze den gefundenen Link (und alles, was daran hängt, wie &authuser=1) durch einen leeren String
         cleanedDescription = event.description.replace(fullLinkRegex, '').trim();
     }
     
     // HTML für das Bild, falls vorhanden
-    const imageHtml = imageUrl 
+    const imageHtml = imageUrl
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
-        : ''; 
+        : '';
 
-    // ... (Rest der Logik bleibt unverändert) ...
     const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : event.date;
     const locationEncoded = encodeURIComponent(event.location);
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${locationEncoded}`; 
+    
+    // KORRIGIERTER Maps-Link:
+    const mapsUrl = `http://maps.google.com/maps?q=${locationEncoded}`;
     const locationLink = `<a href="${mapsUrl}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
 
     const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
-    // Wir leeren den Inhalt
+    // Entferne alle Kinder außer dem Schließen-Button
     Array.from(modalContent.children).forEach(child => {
         if (!child.classList.contains('close')) {
             child.remove();
         }
     });
 
-    // NEUE STRUKTUR HINZUFÜGEN
     const detailsHTML = `
-        <h2 style="color: #8B4513;">${event.title}</h2> 
+        <h2 style="color: #8B4513;">${event.title}</h2>
         ${imageHtml}
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
         
         <hr style="border-top: 1px solid ${providerColor}; margin: 15px 0;">
         
-        <p><strong>Anbieter:</strong> 
+        <p><strong>Anbieter:</strong>
             <strong style="color: ${safeLinkColor}; cursor: pointer;" onclick="showVeranstalterDetails(${event.providerId})">
                 ${providerName} (Details anzeigen)
             </strong>
@@ -810,39 +863,65 @@ function showEventDetails(event) {
     eventModal.style.display = "block";
 }
 
+    function showVeranstalterDetails(providerId) {
+        closeModal('eventModal'); 
+
+        const provider = providers.find(p => p.id === providerId);
+        if (!provider) {
+            console.error("Anbieter nicht gefunden:", providerId);
+            return;
+        }
+
+        document.getElementById('modalProviderName').textContent = provider.name;
+        document.getElementById('modalProviderContact').textContent = provider.contact || 'Keine Angabe';
+        document.getElementById('modalProviderInfo').textContent = provider.info || 'Keine weiteren Informationen.';
+        
+        const linkElement = document.getElementById('modalProviderLink');
+        if (provider.link) {
+            linkElement.href = provider.link;
+            linkElement.style.display = 'inline';
+        } else {
+            linkElement.style.display = 'none';
+        }
+
+        veranstalterModal.style.display = "block";
+    }
+
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = "none";
     }
 
-// --- 6. NAVIGATION UND START (KORRIGIERT) ---
-
-// --- 2. NAVIGATION UND ANSICHTEN (KORRIGIERT FÜR LOADER) ---
+// --- 6. NAVIGATION UND START ---
 
 function switchView(view) {
-    // ... (Klassen-Wechsel bleibt unverändert) ...
     document.getElementById('events-btn').classList.remove('active');
     document.getElementById('providers-btn').classList.remove('active');
 
     if (view === 'events') {
         document.getElementById('events-btn').classList.add('active');
-        // Da Events neu geladen werden könnten, bleibt die Logik in fetchCalendarEvents
-        renderEventList(dynamicEvents); 
+        
+        // FILTER AKTIVIERT: Filterleiste sichtbar machen
+        document.getElementById('filter-container').style.display = 'block'; 
+
+        searchInput.value = '';
+        
+        // Aktuellen Filter (oder 'Alle') anwenden
+        applyCategoryFilter(currentFilterId);
+
     } else if (view === 'providers') {
         document.getElementById('providers-btn').classList.add('active');
         
-        // NEU: Loader explizit ausblenden, da keine neuen Daten geladen werden
-        appLoader.style.display = 'none'; 
+        // Filterleiste im Provider-View unsichtbar machen
+        document.getElementById('filter-container').style.display = 'none'; 
         
-        renderProviderList(providers);
+        appLoader.style.display = 'none';
+        searchInput.value = '';
+        renderProviderList();
     }
-    // Suchfeld leeren und Filter neu anwenden
-    searchInput.value = '';
-    filterEvents();
 }
 
 window.onload = () => {
-        // fetchCalendarEvents() wird jetzt hier direkt aufgerufen
-        fetchCalendarEvents(); 
+        fetchCalendarEvents();
         document.getElementById('events-btn').onclick = () => switchView('events');
         document.getElementById('providers-btn').onclick = () => switchView('providers');
         searchInput.addEventListener('input', filterEvents);
