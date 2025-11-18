@@ -268,6 +268,7 @@
         right: 0;
         max-width: 600px;
         margin: 0 auto;
+        /* HIER: Vier Buttons in der Leiste */
         display: flex;
         background-color: #343a40; 
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
@@ -278,16 +279,17 @@
 
     .nav-btn {
         flex: 1;
-        padding: 15px 10px;
+        padding: 15px 5px; /* Etwas weniger Padding für 4 Buttons */
         color: white;
         text-align: center;
         text-decoration: none;
-        font-size: 1em;
+        font-size: 0.9em; /* Etwas kleinere Schrift */
         cursor: pointer;
         transition: background-color 0.3s;
         border-radius: 0;
         border: none;
         background: none;
+        line-height: 1.1; 
     }
 
     .nav-btn:hover {
@@ -319,7 +321,6 @@
         padding: 25px; 
         border-radius: 10px;
         width: 90%;
-        /* ERHÖHT: Max-Breite auf die App-Container-Größe (600px) angehoben */
         max-width: 580px; 
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         animation-name: animatetop;
@@ -364,7 +365,6 @@
         border: 1px solid #888;
         border-radius: 10px;
         width: 90%;
-        /* KORRIGIERT: Muss kleiner sein als 600px, um Puffer zu haben */
         max-width: 580px; 
         box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     }
@@ -374,13 +374,12 @@
     .event-image-container {
         text-align: center; 
         margin: 15px auto; 
-        /* WICHTIG: Soll die volle Breite des Modal-Inhalts nutzen */
         max-width: 100%; 
         border-radius: 5px;
         overflow: hidden;
         height: auto;
     }
-    
+
     .event-image {
         max-width: 100%;
         width: 100%; 
@@ -391,6 +390,30 @@
     }
 	
     }
+
+/* Zusätzliches Styling für die neuen Seiten-Container */
+.static-view {
+    padding: 20px;
+    display: none; /* Standardmäßig versteckt */
+    font-size: 1.1em;
+}
+.static-view h2 {
+    color: #8B4513;
+    border-bottom: 2px solid #8B4513;
+    padding-bottom: 5px;
+}
+.static-view h3 {
+    color: #8B4513;
+}
+.static-view a {
+    color: #007bff;
+    font-weight: bold;
+    text-decoration: none;
+}
+.static-view a:hover {
+    text-decoration: underline;
+}
+
 </style>
 </head>
 <body>
@@ -426,9 +449,67 @@
 </div>
 
     <div id="app-content" style="padding-bottom: 70px;">
+    </div>
+    
+    <div id="whatsapp-view" class="static-view">
+        
+        <h2>WhatsApp Community</h2>
+        <p>Treten Sie unserer Community bei, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf Ihr Handy zu erhalten. Hier können Sie auch selbst mitdiskutieren.</p>
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="https://chat.whatsapp.com/JYa2h2T2EynJSRo2KApNiE" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
+                Community beitreten
+            </a>
         </div>
 
-<div id="eventModal" class="modal">
+        <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
+        
+        <h2>WhatsApp Kanal für Veranstaltungen</h2>
+        <p>Abonnieren Sie unseren Kanal, um **ausschließlich** Informationen zu neuen und aktuellen Veranstaltungen aus Nordleda zu erhalten. Dieser Kanal dient nur der Information durch uns.</p>
+        <div style="margin-top: 20px; text-align: center;">
+            <a href="https://whatsapp.com/channel/0029VbBsgtIK0IBZMmtQJ61J" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
+                Kanal abonnieren
+            </a>
+        </div>
+        
+    </div>
+
+<div id="contact-view" class="static-view">
+        
+        <h2>Feedback, Anfragen & Support</h2>
+        <p>Haben Sie allgemeine Fragen, möchten Sie eine Veranstaltung melden oder benötigen Sie technischen Support für diese App?</p>
+        <p>Bitte nutzen Sie unsere zentrale E-Mail-Adresse. Wir freuen uns auf Ihre Nachricht!</p>
+        
+        <h3 style="color: #8B4513;">Zentrale Kontaktstelle:</h3>
+        <div style="margin-top: 20px; margin-bottom: 40px;">
+			E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com">miteinander.netzwerk.nordleda@gmail.com</a>
+        </div>
+        
+        <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
+        
+        <h2>Impressum</h2>
+        <p><strong>Betreiber und Verantwortlich für den Inhalt:</strong></p>
+        <p>
+            Miteinander Netzwerk Nordleda<br>
+            c/o Andreas Beckmann<br>
+            Kampen 31 - 21765 Nordleda
+        </p>
+
+        <h4 style="color: #8B4513; margin-top: 25px;">Verantwortlich im Sinne des Presserechts (V.i.S.d.P.):</h4>
+        <p>
+            Andreas Beckmann<br>
+            Kampen 31 - 21765 Nordleda
+        </p>
+
+        <h3 style="color: #8B4513; margin-top: 25px;">Kontakt:</h3>
+        <p>
+            E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com">miteinander.netzwerk.nordleda@gmail.com</a>
+        </p>
+        <p style="font-size: 0.9em; margin-top: 20px;">
+            *Hinweis:* Wir sind bemüht, die Informationen in dieser App aktuell und korrekt zu halten. Da die App ausschließlich zur Bekanntmachung von lokalen Veranstaltungen dient, übernehmen wir keine Haftung für die Richtigkeit der Termine und Inhalte der Veranstalter.
+        </p>
+    </div>
+	
+    <div id="eventModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('eventModal')">×</span>
         </div>
@@ -448,16 +529,18 @@
     <nav id="navigation">
         <button id="events-btn" class="nav-btn active" onclick="switchView('events')">Veranstaltungen</button>
         <button id="providers-btn" class="nav-btn" onclick="switchView('providers')">Anbieter</button>
+        <button id="whatsapp-btn" class="nav-btn" onclick="switchView('whatsapp')">WhatsApp</button>
+        <button id="contact-btn" class="nav-btn" onclick="switchView('contact')">Kontakt</button>
     </nav>
 	
 </div>
 
 
 <script>
-    // --- 1. KONFIGURATION (HIER MÜSSEN SIE ERSETZEN!) ---
+    // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDDsCuRzCYH-U3tjoTu1VCiv641zY7K4Cc';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-    const MIN_SPLASH_DURATION = 4000; // 4 Sekunden Mindestdauer
+    const MIN_SPLASH_DURATION = 4000; 
     
     // Basisdaten für die Anbieter
     const providers = [
@@ -484,9 +567,14 @@
     const veranstalterModal = document.getElementById('veranstalterModal');
 	const appLoader = document.getElementById('app-loader');
 	const splashScreen = document.getElementById('splashScreen');
+    const filterContainer = document.getElementById('filter-container'); 
+    
+    const whatsappView = document.getElementById('whatsapp-view');
+    const contactView = document.getElementById('contact-view');
+
     let dynamicEvents = [];
     let currentFilterId = null; 
-    let startTime; // Startzeitpunkt für die Messung der Splash-Dauer
+    let startTime; 
 
     // --- 2. HILFSFUNKTIONEN ---
 
@@ -501,8 +589,6 @@
         return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
     }
     
-// --- FUNKTION: Drive Link für Anzeige vorbereiten (FIXED) ---
-
 function getEmbeddableDriveLink(description) {
     if (!description) return null;
     const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
@@ -515,10 +601,10 @@ function getEmbeddableDriveLink(description) {
     return null;
 }
 
-// --- 3. DATENABRUF VON GOOGLE KALENDER (FIX FÜR SPLASH-BLOCKADE) ---
+// --- 3. DATENABRUF VON GOOGLE KALENDER ---
 
 function fetchCalendarEvents() {
-    startTime = Date.now(); // Startzeit speichern
+    startTime = Date.now(); 
 
     const hideSplash = () => {
         const elapsedTime = Date.now() - startTime;
@@ -601,11 +687,10 @@ function fetchCalendarEvents() {
                 };
             });
 			appLoader.style.display = 'none';
-            // Zuerst die Filter-Buttons erstellen, dann die Liste rendern
-            createFilterButtons(); 
-            renderEventList(dynamicEvents);
             
-            // Standardmäßig Filter auf "Alle Events" setzen
+            // FILTERLEISTE SICHTBAR MACHEN UND INITIALISIEREN
+            createFilterButtons(); 
+            filterContainer.style.display = 'block';
             applyCategoryFilter(null);
             
             hideSplash(); 
@@ -638,7 +723,6 @@ function fetchCalendarEvents() {
         card.className = 'card';
         card.style.borderLeftColor = cardColor;
         
-        // WICHTIG: Setzt die CSS-Variable, die für den Hover-Effekt benötigt wird.
         card.style.setProperty('--event-color', cardColor);
         
         card.style.display = 'flex';
@@ -671,7 +755,7 @@ function createFilterButtons() {
     allBtn.className = 'filter-btn selected';
     allBtn.textContent = 'Alle Events';
     allBtn.onclick = () => {
-        searchInput.value = ''; // Suchfeld leeren beim Filterwechsel
+        searchInput.value = ''; 
         applyCategoryFilter(null);
     };
     filterContainer.appendChild(allBtn);
@@ -682,7 +766,7 @@ function createFilterButtons() {
             btn.className = 'filter-btn';
             btn.textContent = provider.name;
             btn.onclick = () => {
-                searchInput.value = ''; // Suchfeld leeren beim Filterwechsel
+                searchInput.value = ''; 
                 applyCategoryFilter(provider.id);
             };
             filterContainer.appendChild(btn);
@@ -698,10 +782,8 @@ function applyCategoryFilter(providerId) {
     let targetButton;
 
     if (providerId === null) {
-        // 'Alle Events' Button auswählen
         targetButton = document.querySelector('#filter-container .filter-btn:first-child'); 
     } else {
-        // Den spezifischen Anbieter-Button auswählen
         targetButton = Array.from(document.querySelectorAll('.filter-btn')).find(btn => btn.textContent === providers.find(p => p.id === providerId)?.name);
     }
     
@@ -770,22 +852,16 @@ function filterEvents() {
                                       event.location.toLowerCase().includes(searchTerm) ||
                                       providerName.includes(searchTerm);
                                       
-            // Nur Events anzeigen, die zum aktuellen Filter (falls gesetzt) ODER zum Suchbegriff passen
-            // Wenn das Suchfeld nicht leer ist, wird der aktuelle Filter ignoriert (es wird in allen Events gesucht)
             if (searchTerm.length > 0) {
-                // Suche hat Priorität, filtert alle Events nach Suchbegriff
                 return matchesSearchTerm;
             } else {
-                // Suchfeld leer: Es wird nach dem aktuell aktiven Kategorie-Filter gefiltert
                 return currentFilterId === null || event.providerId === currentFilterId;
             }
         });
         
-        // Aktualisierung des Filter-UI beim Suchen
         if (searchTerm.length > 0) {
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('selected'));
         } else {
-             // Suchfeld ist leer, Filter-Status wiederherstellen
              applyCategoryFilter(currentFilterId);
         }
 
@@ -802,7 +878,7 @@ function filterEvents() {
 }
 
 
-// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (FIX: MAPS & BILDER) ---
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS ---
 
 function showEventDetails(event) {
     const provider = providers.find(p => p.id == event.providerId);
@@ -810,10 +886,8 @@ function showEventDetails(event) {
     const providerColor = provider ? provider.color : '#8B4513';
     const safeLinkColor = '#8B4513';
 
-    // 1. URL prüfen und extrahieren
     const imageUrl = getEmbeddableDriveLink(event.description);
     
-    // 2. Beschreibung bereinigen (Link entfernen)
     let cleanedDescription = event.description;
     
     const fullLinkRegex = /https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)[a-zA-Z0-9_-]+(?:[^ \n\r]*)/g;
@@ -822,7 +896,6 @@ function showEventDetails(event) {
         cleanedDescription = event.description.replace(fullLinkRegex, '').trim();
     }
     
-    // HTML für das Bild, falls vorhanden
     const imageHtml = imageUrl
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
         : '';
@@ -830,13 +903,11 @@ function showEventDetails(event) {
     const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : event.date;
     const locationEncoded = encodeURIComponent(event.location);
     
-    // KORRIGIERTER Maps-Link:
     const mapsUrl = `http://maps.google.com/maps?q=${locationEncoded}`;
     const locationLink = `<a href="${mapsUrl}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
 
     const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
-    // Entferne alle Kinder außer dem Schließen-Button
     Array.from(modalContent.children).forEach(child => {
         if (!child.classList.contains('close')) {
             child.remove();
@@ -891,39 +962,65 @@ function showEventDetails(event) {
         document.getElementById(modalId).style.display = "none";
     }
 
-// --- 6. NAVIGATION UND START ---
+// --- 6. NAVIGATION UND START (ERWEITERT) ---
+
+function hideAllViews() {
+    contentDiv.style.display = 'none';
+    whatsappView.style.display = 'none';
+    contactView.style.display = 'none';
+    filterContainer.style.display = 'none';
+    searchInput.style.display = 'none';
+}
 
 function switchView(view) {
-    document.getElementById('events-btn').classList.remove('active');
-    document.getElementById('providers-btn').classList.remove('active');
-
+    // 1. Alle Nav-Buttons deaktivieren
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // 2. Alle Inhalte verstecken
+    hideAllViews();
+    
+    // 3. Ansicht wechseln
     if (view === 'events') {
         document.getElementById('events-btn').classList.add('active');
-        
-        // FILTER AKTIVIERT: Filterleiste sichtbar machen
-        document.getElementById('filter-container').style.display = 'block'; 
+        headerTitle.textContent = "Veranstaltungen";
+        contentDiv.style.display = 'block';
+        searchInput.style.display = 'block';
+        filterContainer.style.display = 'block'; 
 
-        searchInput.value = '';
-        
-        // Aktuellen Filter (oder 'Alle') anwenden
+        // Bei Event-View: Liste rendern/filtern
         applyCategoryFilter(currentFilterId);
 
     } else if (view === 'providers') {
         document.getElementById('providers-btn').classList.add('active');
+        headerTitle.textContent = "Anbieter";
+        contentDiv.style.display = 'block';
+        searchInput.style.display = 'block';
         
-        // Filterleiste im Provider-View unsichtbar machen
-        document.getElementById('filter-container').style.display = 'none'; 
-        
-        appLoader.style.display = 'none';
-        searchInput.value = '';
+        // Bei Anbieter-View: Liste rendern
         renderProviderList();
+
+    } else if (view === 'whatsapp') {
+        document.getElementById('whatsapp-btn').classList.add('active');
+        headerTitle.textContent = "WhatsApp";
+        whatsappView.style.display = 'block';
+        
+    } else if (view === 'contact') {
+        document.getElementById('contact-btn').classList.add('active');
+        headerTitle.textContent = "Feedback & Kontakt";
+        contactView.style.display = 'block';
     }
 }
 
 window.onload = () => {
         fetchCalendarEvents();
+        
+        // Füge alle Nav-Button-Klicks hinzu
         document.getElementById('events-btn').onclick = () => switchView('events');
         document.getElementById('providers-btn').onclick = () => switchView('providers');
+        document.getElementById('whatsapp-btn').onclick = () => switchView('whatsapp');
+        document.getElementById('contact-btn').onclick = () => switchView('contact');
+
+        // Suchfunktion nur für Events/Anbieter
         searchInput.addEventListener('input', filterEvents);
     };
 
