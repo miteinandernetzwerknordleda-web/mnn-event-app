@@ -454,7 +454,8 @@
     <div id="whatsapp-view" class="static-view">
         
         <h2>WhatsApp Community</h2>
-        <p>Treten Sie unserer Community bei, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf Ihr Handy zu erhalten. Hier können Sie auch selbst mitdiskutieren.</p>
+        <p>Tritt unserer Community bei, um um in verschiedenen Gruppen nach Lust und Laune über alles mögliche in unserem Nordleda zu chatten. Und wenn es eine Idee gibt, die unbedingt besprochen werden sollte, dann erstellt ihr selber eine Gruppe.<br>
+			Reinschauen, Mitmachen, Diskutieren, Moderieren.</p>
         <div style="margin-top: 20px; text-align: center;">
             <a href="https://chat.whatsapp.com/JYa2h2T2EynJSRo2KApNiE" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
                 Community beitreten
@@ -464,7 +465,8 @@
         <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
         
         <h2>WhatsApp Kanal für Veranstaltungen</h2>
-        <p>Abonnieren Sie unseren Kanal, um **ausschließlich** Informationen zu neuen und aktuellen Veranstaltungen aus Nordleda zu erhalten. Dieser Kanal dient nur der Information durch uns.</p>
+        <p>Abonniert  unseren Kanal, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf euer Handy zu erhalten.<br>
+		Dieser Kanal dient nur der Information durch uns.</p>
         <div style="margin-top: 20px; text-align: center;">
             <a href="https://whatsapp.com/channel/0029VbBsgtIK0IBZMmtQJ61J" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
                 Kanal abonnieren
@@ -473,15 +475,15 @@
         
     </div>
 
-<div id="contact-view" class="static-view">
+    <div id="contact-view" class="static-view">
         
         <h2>Feedback, Anfragen & Support</h2>
-        <p>Haben Sie allgemeine Fragen, möchten Sie eine Veranstaltung melden oder benötigen Sie technischen Support für diese App?</p>
-        <p>Bitte nutzen Sie unsere zentrale E-Mail-Adresse. Wir freuen uns auf Ihre Nachricht!</p>
+        <p>Habet ihr allgemeine Fragen, möchtet ihr eine Veranstaltung melden oder benötigt ihr technischen Support für diese App?</p>
+        <p>Bitte nutzt unsere zentrale E-Mail-Adresse. Wir freuen uns auf eure Nachricht!</p>
         
         <h3 style="color: #8B4513;">Zentrale Kontaktstelle:</h3>
         <div style="margin-top: 20px; margin-bottom: 40px;">
-			E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com">miteinander.netzwerk.nordleda@gmail.com</a>
+            E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com">miteinander.netzwerk.nordleda@gmail.com</a>
         </div>
         
         <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
@@ -489,12 +491,13 @@
         <h2>Impressum</h2>
         <p><strong>Betreiber und Verantwortlich für den Inhalt:</strong></p>
         <p>
-            Miteinander Netzwerk Nordleda<br>
+            Interessengruppe<br>
+			Miteinander Netzwerk Nordleda<br>
             c/o Andreas Beckmann<br>
             Kampen 31 - 21765 Nordleda
         </p>
 
-        <h4 style="color: #8B4513; margin-top: 25px;">Verantwortlich im Sinne des Presserechts (V.i.S.d.P.):</h4>
+        <h3 style="color: #8B4513; margin-top: 25px;">Verantwortlich im Sinne des Presserechts (V.i.S.d.P.):</h3>
         <p>
             Andreas Beckmann<br>
             Kampen 31 - 21765 Nordleda
@@ -508,7 +511,6 @@
             *Hinweis:* Wir sind bemüht, die Informationen in dieser App aktuell und korrekt zu halten. Da die App ausschließlich zur Bekanntmachung von lokalen Veranstaltungen dient, übernehmen wir keine Haftung für die Richtigkeit der Termine und Inhalte der Veranstalter.
         </p>
     </div>
-	
     <div id="eventModal" class="modal">
     <div class="modal-content">
         <span class="close" onclick="closeModal('eventModal')">×</span>
@@ -545,13 +547,13 @@
     // Basisdaten für die Anbieter
     const providers = [
         { id: 1, name: "TSV Nordleda", contact: "Jürgen Hoberg Tel. 04758-546", info: "Der lokale Sportverein mit verschiedenen Angeboten", link: "https://www.nordleda.de/vereine-und-choere/tsv-nordleda-ev/", color: "#a4bdfc" },
-        { id: 2, name: "DRK Nordleda", contact: "Anja von Bebern Tel. 04758-679", info: "Der DRK Ortsverein bietet mit dem Arbeitskreis viele verschiedene Veranstaltungen", link: "https://www.svnordleda.de/", color: "#ff887c" },
+        { id: 2, name: "DRK Nordleda", contact: "Anja von Bebern Tel. 04758-679", info: "Der DRK Ortsverein bietet mit dem Arbeitskreis viele verschiedene Veranstaltungen", color: "#ff887c" },
         { id: 3, name: "Schützenverein Nordleda", contact: "Über das Kontaktformular auf der Webseite", info: "Schützenverein Nordleda von 1953 e.V.", link: "https://www.svnordleda.de/", color: "#7ae7bf" },
         { id: 4, name: "Kirchengemeinde Nordleda", contact: "meike.mueller-bilgenroth@evlka.de", info: "Die Kirchengemeinde St. Nicolai in Nordleda", link: "https://www.kk-ch.de/gemeinden/nordleda/", color: "#dbadff" },
 		{ id: 5, name: "taktlos-Chor", contact: "Über das Kontaktformular auf der Webseite", info: "...der a cappella Männerchor", link: "https://www.gruppe-taktlos.de/", color: "#5484ed" },
 		{ id: 6, name: "LoGos-Chor Nordleda", contact: "Gunda Knust Tel. 04758-326", info: "Lobpreis-Gospelchor", color: "#8A2BE2" },
 		{ id: 7, name: "FamilienHaven Nordleda", contact: "Serina Naß Tel. 015256302291", info: "Delfi Kurse - Fachkraft für Beikost, Elternvorbereitung, Säuglingspflege, Achtsamkeit", link: "https://www.instagram.com/delfinordleda/", color: "#fbd75b" },
-		{ id: 8, name: "Werbegemeinschaft Nordleda", contact: "Hans-Hermann Ropers Tel. 04758-444", info: "Werbegemeinschaft des Ortes Nordleda", link: "https://www.gruppe-taktlos.de/", color: "#5484ed" },
+		{ id: 8, name: "Werbegemeinschaft Nordleda", contact: "Hans-Hermann Ropers Tel. 04758-444", info: "Werbegemeinschaft des Ortes Nordleda", color: "#ffacac" },
 		{ id: 9, name: "CDU Nordleda", contact: "Hans-Hermann Ropers Tel. 04758-444", info: "CDU Ortsverband Nordleda", link: "https://www.cdu-land-hadeln.de/ortsverbaende/nordleda/", color: "#000000" },
 		{ id: 10, name: "SoVD Neuenkirchen/Nordleda", contact: "Über das Kontaktformular auf der Webseite", info: "Sozialverband Deutschland", link: "https://www.sovd-cuxhaven.de/verband-990125?verbandid=991896&cHash=f253ff976383e4a74d925e676582cb7b", color: "#D3D3D3" },
 		{ id: 11, name: "Miteinander Netzwerk Nordleda", contact: "miteinander.netzwerk.nordleda@gmail.com", info: "Interessengruppe zur Stärkung des Gemeinschaftsgefüges", link: "https://sites.google.com/view/netzwerknordleda/start", color: "#EE00EE" },
@@ -568,6 +570,9 @@
 	const appLoader = document.getElementById('app-loader');
 	const splashScreen = document.getElementById('splashScreen');
     const filterContainer = document.getElementById('filter-container'); 
+    
+    // Neu hinzugefügt, um den Such-Container ausblenden zu können
+    const searchContainer = document.getElementById('search-container'); 
     
     const whatsappView = document.getElementById('whatsapp-view');
     const contactView = document.getElementById('contact-view');
@@ -969,7 +974,9 @@ function hideAllViews() {
     whatsappView.style.display = 'none';
     contactView.style.display = 'none';
     filterContainer.style.display = 'none';
-    searchInput.style.display = 'none';
+    
+    // Suchcontainer komplett ausblenden, um den Platz zu entfernen
+    searchContainer.style.display = 'none'; 
 }
 
 function switchView(view) {
@@ -984,6 +991,7 @@ function switchView(view) {
         document.getElementById('events-btn').classList.add('active');
         headerTitle.textContent = "Veranstaltungen";
         contentDiv.style.display = 'block';
+        searchContainer.style.display = 'block'; // Suchcontainer anzeigen
         searchInput.style.display = 'block';
         filterContainer.style.display = 'block'; 
 
@@ -994,6 +1002,7 @@ function switchView(view) {
         document.getElementById('providers-btn').classList.add('active');
         headerTitle.textContent = "Anbieter";
         contentDiv.style.display = 'block';
+        searchContainer.style.display = 'block'; // Suchcontainer anzeigen
         searchInput.style.display = 'block';
         
         // Bei Anbieter-View: Liste rendern
@@ -1006,7 +1015,7 @@ function switchView(view) {
         
     } else if (view === 'contact') {
         document.getElementById('contact-btn').classList.add('active');
-        headerTitle.textContent = "Feedback & Kontakt";
+        headerTitle.textContent = "Feedback & Impressum"; 
         contactView.style.display = 'block';
     }
 }
