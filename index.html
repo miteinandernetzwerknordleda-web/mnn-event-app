@@ -2,8 +2,9 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Lokale Events App</title>
+	<title>Lokale Events App</title>
     
 <link rel="manifest" href="/mnn-event-app/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes"> 
@@ -1171,28 +1172,27 @@ function fetchCalendarEvents() {
             
             hideSplash(); 
         })	
-        .catch(error => {
-            // NEU: Fehlerbehandlung für Offline-Modus
+	.catch(error => {
+            // Fehlerbehandlung für Offline-Modus oder API-Fehler
             appLoader.style.display = 'none';
             hideSplash(); 
             
+            // WICHTIG: Prüfen, ob wir Events gespeichert haben
             if (lastKnownEvents.length > 0) {
-                 // Wenn Events im Speicher sind, verwenden wir diese
                  console.log("Offline-Modus: Zeige letzte bekannte Events.");
                  headerTitle.textContent = "Veranstaltungen (Offline)";
-                 // Nur anzeigen, wenn wir nicht gerade filtern/suchen
-                 if (!searchInput.value) { 
-                     renderEventList(lastKnownEvents);
-                 } else {
-                      // Wenn Offline und gesucht wird, nur die Suche auf den alten Daten ausführen
-                      filterEvents();
-                 }
-                 // Setzt den Filter-Container wieder sichtbar
+                 
+                 // **WICHTIGE KORREKTUR:** Wir rufen applyCategoryFilter(null) auf.
+                 // Diese Funktion rendert die Events UND erstellt die Filter-Buttons neu.
+                 applyCategoryFilter(null); // Zeigt alle Events aus lastKnownEvents an!
+                 
+                 // Stellt sicher, dass die Filterleiste sichtbar ist
                  filterContainer.style.display = 'block';
 
             } else {
                 // Wenn wir KEINE Events im Speicher haben, dann zeigen wir den Fehler
                 headerTitle.textContent = "Veranstaltungen";
+                // Der Fehlertext, den Sie sehen
                 contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: Du bist offline oder der Server ist nicht erreichbar.</p>`;
                 console.error("Error fetching events:", error);
                 
