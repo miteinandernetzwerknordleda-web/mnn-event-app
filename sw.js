@@ -1,12 +1,15 @@
-const CACHE_NAME = 'mnn-cache-v1';
+const CACHE_NAME = 'mnn-cache-v2'; // Wir erhöhen die Version, um alle neuen Logos zu cachen!
 const urlsToCache = [
     '/',
     '/index.html',
     // PWA-Dateien
     '/manifest.json',
     '/sw.js',
-    // Logodateien (müssen alle hier gelistet werden)
-    '/logo.png',
+    // Icons (Muss zum Pfad in manifest.json passen)
+    '/icons/icon-192x192.png',
+    '/icons/icon-512x512.png',
+    // ALLE Logodateien für den Splash-Screen (Muss den Dateinamen im JS entsprechen)
+    '/logo.png', // Standard
     '/mnnsplashadv1.jpg',
     '/mnnsplashadv2.jpg',
     '/mnnsplashadv3.jpg',
@@ -16,10 +19,8 @@ const urlsToCache = [
     '/mnnsplashvalentins.jpg',
     '/mnnsplashostern.jpg',
     '/mnnsplashdeutsch.jpg',
-    // Icons (falls im icons Ordner)
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png'
-    // Hier können weitere benötigte CSS/JS-Dateien folgen
+    // Wir cachen auch die CSS-Dateien, wenn Sie diese ausgelagert haben. 
+    // Da hier alles in index.html ist, sind die oben genannten Dateien ausreichend.
 ];
 
 // Installation: Cache alle Ressourcen
@@ -49,23 +50,32 @@ self.addEventListener('fetch', event => {
                 // Kein Cache Hit - gehe ins Netzwerk
                 return fetch(event.request).then(
                     response => {
-                        // Wenn der API-Aufruf erfolgreich war, aktualisiere NICHT den Cache
+                        // Wenn es eine API-Anfrage (Google Calendar) ist, cachen wir die Antwort NICHT.
                         if (event.request.url.includes('googleapis.com')) {
                             return response;
                         }
 
-                        // Ansonsten: Klonen der Antwort, um sie im Cache zu speichern
+                        // Bei allen anderen (eigenen) Ressourcen: Klonen der Antwort, um sie im Cache zu speichern
                         const responseToCache = response.clone();
 
                         caches.open(CACHE_NAME)
                             .then(cache => {
                                 // Speichern der neuen Ressource im Cache
-                                cache.put(event.request, responseToCache);
+                                // Wir cachen nur GET-Anfragen (Standard) und erfolgreiche Antworten (Status 200)
+                                if (responseToCache.status === 200 && event.request.method === 'GET') {
+                                    cache.put(event.request, responseToCache);
+                                }
                             });
 
                         return response;
                     }
                 );
+            })
+            // Fallback für den Fall, dass fetch() fehlschlägt (z.B. keine Internetverbindung)
+            .catch(() => {
+                 // Hier könnte eine Offline-Fallback-Seite geliefert werden,
+                 // aber da wir index.html im Cache haben, wird die App einfach mit Cache-Daten gestartet.
+                 return caches.match('/index.html'); 
             })
     );
 });
