@@ -10,6 +10,7 @@ const urlsToCache = [
     '/icons/icon-512x512.png',
     // ALLE Logodateien für den Splash-Screen (Muss den Dateinamen im JS entsprechen)
     '/logo.png', // Standard
+    '/Splashlogo.png', // Standard
     '/mnnsplashadv1.jpg',
     '/mnnsplashadv2.jpg',
     '/mnnsplashadv3.jpg',
@@ -95,3 +96,4 @@ self.addEventListener('activate', event => {
         })
     );
 });
+
