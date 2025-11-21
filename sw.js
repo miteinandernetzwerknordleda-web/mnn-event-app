@@ -1,6 +1,6 @@
-const CACHE_NAME = 'mnn-cache-v2'; // Wir erhöhen die Version, um alle neuen Logos zu cachen!
+const CACHE_NAME = 'mnn-cache-v3'; // Wir erhöhen die Version, um alle neuen Logos zu cachen!
 const urlsToCache = [
-    '/',
+	'/mnn-event-app/', // Wichtig: Pfad zur Hauptseite muss enthalten sein
     '/index.html',
     // PWA-Dateien
     '/manifest.json',
@@ -10,7 +10,7 @@ const urlsToCache = [
     '/icons/icon-512x512.png',
     // ALLE Logodateien für den Splash-Screen (Muss den Dateinamen im JS entsprechen)
     '/logo.png', // Standard
-    '/Splashlogo.png', // Standard
+	'/Splashlogo.png', // Standard
     '/mnnsplashadv1.jpg',
     '/mnnsplashadv2.jpg',
     '/mnnsplashadv3.jpg',
@@ -96,4 +96,3 @@ self.addEventListener('activate', event => {
         })
     );
 });
-
