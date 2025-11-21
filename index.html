@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Lokale Events App</title>
     
 <link rel="manifest" href="/mnn-event-app/manifest.json">
@@ -1622,17 +1622,19 @@ window.onload = () => {
     }
     
     // --- 7. SERVICE WORKER REGISTRIERUNG ---
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                    console.log('ServiceWorker registriert mit Scope:', registration.scope);
-                })
-                .catch(error => {
-                    console.log('ServiceWorker Registrierung fehlgeschlagen:', error);
-                });
+	if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/mnn-event-app/sw.js', {
+            scope: '/mnn-event-app/' // Wichtig: Der Scope muss auch korrigiert werden
+        })
+        .then(registration => {
+            console.log('ServiceWorker registriert mit Scope:', registration.scope);
+        })
+        .catch(error => {
+            console.error('ServiceWorker Registrierung fehlgeschlagen:', error);
         });
-    }
+    });
+}
     // --- ENDE SERVICE WORKER REGISTRIERUNG ---
 </script>
 </body>
