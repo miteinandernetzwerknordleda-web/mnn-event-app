@@ -1,27 +1,28 @@
-const CACHE_NAME = 'mnn-cache-v3'; // Wir erhöhen die Version, um alle neuen Logos zu cachen!
+const CACHE_NAME = 'mnn-cache-v4'; // NEUE VERSION!
+
+const APP_PATH = '/mnn-event-app/';
+
 const urlsToCache = [
-	'/mnn-event-app/', // Wichtig: Pfad zur Hauptseite muss enthalten sein
-    '/index.html',
+    APP_PATH,
+    APP_PATH + 'index.html',
     // PWA-Dateien
-    '/manifest.json',
-    '/sw.js',
-    // Icons (Muss zum Pfad in manifest.json passen)
-    '/icons/icon-192x192.png',
-    '/icons/icon-512x512.png',
-    // ALLE Logodateien für den Splash-Screen (Muss den Dateinamen im JS entsprechen)
-    '/logo.png', // Standard
-	'/Splashlogo.png', // Standard
-    '/mnnsplashadv1.jpg',
-    '/mnnsplashadv2.jpg',
-    '/mnnsplashadv3.jpg',
-    '/mnnsplashadv4.jpg',
-    '/mnnsplashtannen.jpg',
-    '/mnnsplashfeuerwerk.jpg',
-    '/mnnsplashvalentins.jpg',
-    '/mnnsplashostern.jpg',
-    '/mnnsplashdeutsch.jpg',
-    // Wir cachen auch die CSS-Dateien, wenn Sie diese ausgelagert haben. 
-    // Da hier alles in index.html ist, sind die oben genannten Dateien ausreichend.
+    APP_PATH + 'manifest.json',
+    APP_PATH + 'sw.js',
+    // Icons
+    APP_PATH + 'icons/icon-192x192.png',
+    APP_PATH + 'icons/icon-512x512.png',
+    // ALLE Logodateien für den Splash-Screen
+    APP_PATH + 'logo.png', // Standard
+	APP_PATH + 'Splashlogo.png',
+    APP_PATH + 'mnnsplashadv1.jpg',
+    APP_PATH + 'mnnsplashadv2.jpg',
+    APP_PATH + 'mnnsplashadv3.jpg',
+    APP_PATH + 'mnnsplashadv4.jpg',
+    APP_PATH + 'mnnsplashtannen.jpg',
+    APP_PATH + 'mnnsplashfeuerwerk.jpg',
+    APP_PATH + 'mnnsplashvalentins.jpg',
+    APP_PATH + 'mnnsplashostern.jpg',
+    APP_PATH + 'mnnsplashdeutsch.jpg'
 ];
 
 // Installation: Cache alle Ressourcen
