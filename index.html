@@ -8,7 +8,7 @@
     <link rel="manifest" href="/manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes"> 
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <style>
+<style>
 * {
     box-sizing: border-box; 
 }
@@ -37,11 +37,14 @@
         pointer-events: none; 
     }
 
+    /* KORRIGIERT: Entfernter Border-Radius und Max-Width/Height für bessere Darstellung des Splash-Logos */
 	.splash-logo {
-        max-width: 400px;
+        max-width: 90%; 
+        max-height: 70vh; 
         height: auto;
+        width: auto; 
         margin-bottom: 20px;
-        border-radius: 15px; 
+        border-radius: 0; 
     }	
 	
     #splashScreen h1 {
@@ -119,11 +122,22 @@
         z-index: 10;
     }
 
+    /* KORRIGIERT: Logo Container und Logo selbst sind jetzt eindeutig definiert */
+    #logo-container {
+        margin-right: 15px; 
+        display: flex;
+        align-items: center;
+    }
+
     #app-logo {
         height: 40px; 
         width: auto;
-        margin-right: 15px; 
+        /* margin-right: 15px; <- entfernt, da es jetzt im #logo-container ist */
         vertical-align: middle; 
+        /* Zusätzliche Regeln, um sicherzustellen, dass das Bild angezeigt wird */
+        min-width: 40px;
+        min-height: 40px;
+        display: block; 
     }
     
     #headerTitle { 
@@ -139,8 +153,9 @@
     /* Styling für den Refresh Button */
     #refreshButton {
         background: none;
+        /* KORRIGIERT: Randfarbe für das '↻' Symbol */
         border: 1px solid white; 
-        color: white;           /* WICHTIG: Macht das Symbol weiß */
+        color: white;           
         font-size: 1.4em; 
         cursor: pointer;
         padding: 5px 10px;
@@ -272,41 +287,53 @@
         margin: 15px 20px; /* Kartenabstand für die Trennung */
     }
 
-    /* NEUER STIL FÜR KALENDER-BUTTONS */
-.calendar-buttons {
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid #ddd;
-    text-align: center;
-    /* Container auf volle Breite des Modals setzen */
-    display: flex;
-    flex-direction: column; 
-    gap: 10px; /* Abstand zwischen den Buttons */
-}
+    /* NEUER, KONSISTENTER STIL FÜR KALENDER-BUTTONS */
+    .calendar-buttons {
+        margin-top: 25px;
+        padding-top: 15px;
+        border-top: 1px solid #ddd;
+        text-align: center;
+        /* Container auf volle Breite des Modals setzen */
+        display: flex;
+        flex-direction: column; 
+        gap: 10px; /* Abstand zwischen den Buttons */
+    }
 
-.calendar-link-btn {
-    display: block; 
-    width: 100%; /* Beide Buttons nehmen volle Container-Breite ein */
-    
-    /* Konsistente Farbgebung */
-    background-color: #A0522D; /* Dunklere Variante Ihres Brauns */
-    color: white;
-    
-    padding: 12px;
-    margin: 0; /* Margin im Container durch gap ersetzt */
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.2s;
-    font-size: 1em;
-    border: none;
-    cursor: pointer;
-}
+    /* KORRIGIERT: Stil für Google Kalender Button (Blau) */
+    .calendar-link-btn:first-child { 
+        background-color: #4285F4; /* Google Blau */
+        color: white;
+    }
 
-.calendar-link-btn:hover {
-    background-color: #694429; /* Noch dunkler beim Hover */
-    opacity: 1; /* Überschreibe das generische opacity: 0.9 */
-}
+    .calendar-link-btn:first-child:hover {
+        background-color: #3b78e7; 
+    }
+
+    /* KORRIGIERT: Stil für ICS Download Button (Grau/Braun) */
+    .calendar-link-btn:last-child { 
+        background-color: #6c757d; /* Dunkles Grau */
+        color: white;
+    }
+
+    .calendar-link-btn:last-child:hover {
+        background-color: #5a6268; 
+    }
+
+    .calendar-link-btn {
+        display: block; 
+        width: 100%; /* Beide Buttons nehmen volle Container-Breite ein */
+        
+        padding: 12px;
+        margin: 0; 
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: background-color 0.2s;
+        font-size: 1em;
+        border: none;
+        cursor: pointer;
+        opacity: 0.9; 
+    }
 
 
 /* 3. KARTEN-STIL (Ergänzung für Datum & Abstand) */
@@ -501,7 +528,7 @@
 <body>
 
 <div id="splashScreen">
-    <img src="logo.png" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
+    <img src="splashlogo.png" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
     <h1>
         EventApp
     </h1>
@@ -627,6 +654,18 @@
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
     const MIN_SPLASH_DURATION = 4000; 
     
+    // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
+    const DEFAULT_LOGO_PATH = 'logo.png'; 
+    const ADVENT_LOGO_BASE = 'mnnsplashadv'; // mnnsplashadv1.jpg, mnnsplashadv2.jpg usw.
+    const LOGO_EXTENSION = '.jpg'; 
+    
+    // ZUSÄTZLICHE FEIERTAGS-KONSTANTEN
+    const CHRISTMAS_LOGO = 'mnnsplashtannen' + LOGO_EXTENSION;
+    const NEW_YEARS_LOGO = 'mnnsplashfeuerwerk' + LOGO_EXTENSION;
+    const VALENTINE_LOGO = 'mnnsplashvalentins' + LOGO_EXTENSION;
+    const EASTER_LOGO = 'mnnsplashostern' + LOGO_EXTENSION;
+    const UNITY_DAY_LOGO = 'mnnsplashdeutsch' + LOGO_EXTENSION; // Tag der Deutschen Einheit (03.10.)
+    
     // Basisdaten für die Anbieter
     const providers = [
         { id: 1, name: "TSV Nordleda", contact: "Jürgen Hoberg Tel. 04758-546", info: "Der lokale Sportverein mit verschiedenen Angeboten", link: "https://www.nordleda.de/vereine-und-choere/tsv-nordleda-ev/", color: "#a4bdfc" },
@@ -654,7 +693,6 @@
 	const splashScreen = document.getElementById('splashScreen');
     const filterContainer = document.getElementById('filter-container'); 
     
-    // Neu hinzugefügt, um den Such-Container ausblenden zu können
     const searchContainer = document.getElementById('search-container'); 
     
     const whatsappView = document.getElementById('whatsapp-view');
@@ -663,7 +701,7 @@
     let dynamicEvents = [];
     let currentFilterId = null; 
     let startTime; 
-    window.eventDetailsCache = null; // Cache für ICS-Download
+    window.eventDetailsCache = null; 
 
     // --- 2. HILFSFUNKTIONEN ---
 
@@ -678,19 +716,167 @@
         return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
     }
     
-function getEmbeddableDriveLink(description) {
-    if (!description) return null;
-    const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
-    const match = description.match(fileIdRegex);
-    
-    if (match && match[1]) {
-        const fileId = match[1].trim();
-        return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`; 
+    function getEmbeddableDriveLink(description) {
+        if (!description) return null;
+        const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
+        const match = description.match(fileIdRegex);
+        
+        if (match && match[1]) {
+            const fileId = match[1].trim();
+            return `https://drive.google.com/thumbnail?id=${fileId}&sz=w600`; 
+        }
+        return null;
     }
-    return null;
+
+// ERWEITERTE FEIERTAGS-LOGIK START
+
+function getFirstAdventDate(year) {
+    // 1. Advent ist der Sonntag, der dem 30. November am nächsten liegt (fällt zwischen 27. Nov. und 3. Dez.).
+    const nov30 = new Date(year, 10, 30); // Monat 10 ist November (0-basiert)
+    const dayOfWeek = nov30.getDay(); // 0 (Sonntag) bis 6 (Samstag)
+    
+    // Berechne das Datum des Sonntags am oder vor dem 30. Nov.
+    let date = 30 - dayOfWeek;
+    
+    // Wenn das berechnete Datum vor dem 27. Nov. liegt, brauchen wir den nächsten Sonntag (Dez 1, 2, oder 3)
+    if (date < 27) {
+        date = 30 + (7 - dayOfWeek);
+    }
+    
+    const firstAdvent = new Date(year, 10, date); 
+    firstAdvent.setHours(0, 0, 0, 0); 
+    return firstAdvent;
 }
 
-// NEUE HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
+function getEasterDate(year) {
+    // Gauss'sche Osterformel
+    const a = year % 19;
+    const b = year % 4;
+    const c = year % 7;
+    const k = Math.floor(year / 100);
+    const p = Math.floor(k / 3);
+    const q = Math.floor(k / 4);
+    const M = Math.floor((15 + k - p - q) % 30);
+    const N = Math.floor((4 + k - q) % 7);
+    const d = Math.floor((19 * a + M) % 30);
+    const e = Math.floor((2 * b + 4 * c + 6 * d + N) % 7);
+    let day = 22 + d + e;
+    let month = 3; // März
+    
+    if (day > 31) {
+        month = 4; // April
+        day = day - 31;
+    }
+    
+    if (d === 29 && e === 6 && year >= 1900) {
+        day = 19;
+        month = 4; // 19. April
+    }
+    if (d === 28 && e === 6 && a > 10 && year >= 1900) {
+        day = 18;
+        month = 4; // 18. April
+    }
+    
+    // Ostersonntag
+    const easter = new Date(year, month - 1, day);
+    easter.setHours(0, 0, 0, 0);
+    return easter;
+}
+
+// ERWEITERTE FEIERTAGS-LOGIK START
+
+// ... (getFirstAdventDate und getEasterDate bleiben unverändert) ...
+
+function getSplashLogoPath() {
+    // Helper-Funktion, um Datumsbereiche leicht zu prüfen
+    // month ist 0-basiert (Jan=0, Dez=11)
+    const checkDateRange = (now, monthStart, dayStart, monthEnd, dayEnd) => {
+        const year = now.getFullYear();
+        const start = new Date(year, monthStart, dayStart);
+        const end = new Date(year, monthEnd, dayEnd);
+        end.setHours(23, 59, 59, 999);
+        return now.getTime() >= start.getTime() && now.getTime() <= end.getTime();
+    };
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    
+    // --- 1. Fixe Feiertage (Jahr-übergreifend) ---
+    
+    // 1.1 Neujahr (01.01.)
+    if (checkDateRange(now, 0, 1, 0, 1)) {
+        return { path: NEW_YEARS_LOGO, text: "Frohes neues Jahr!" };
+    }
+    
+    // 1.2 Valentinstag (14.02.)
+    if (checkDateRange(now, 1, 14, 1, 14)) {
+        return { path: VALENTINE_LOGO, text: "Alles Liebe zum Valentinstag!" };
+    }
+    
+    // 1.3 Tag der Deutschen Einheit (03.10.)
+    if (checkDateRange(now, 9, 3, 9, 3)) {
+        return { path: UNITY_DAY_LOGO, text: "Herzliche Grüße zum Tag der Deutschen Einheit!" };
+    }
+    
+    // --- 2. Bewegliche Feiertage (Ostern) ---
+    const easterSunday = getEasterDate(year);
+    const goodFriday = new Date(easterSunday);
+    goodFriday.setDate(easterSunday.getDate() - 2);
+    const easterMonday = new Date(easterSunday);
+    easterMonday.setDate(easterSunday.getDate() + 1);
+    
+    // Ostern (Karfreitag bis Ostermontag)
+    if (now.getTime() >= goodFriday.getTime() && now.getTime() <= easterMonday.getTime()) {
+        return { path: EASTER_LOGO, text: "Frohe Ostern!" };
+    }
+
+    // --- 3. Silvester (31.12.) ---
+    // Muss vor Weihnachten geprüft werden, da Weihnachten an manchen Tagen des Jahres am Ende liegt.
+    if (checkDateRange(now, 11, 31, 11, 31)) {
+        return { path: NEW_YEARS_LOGO, text: "Guten Rutsch!" };
+    }
+    
+    // --- 4. Weihnachten (Heiligabend, 1. & 2. Weihnachtstag: 24.12. bis 26.12.) ---
+    if (checkDateRange(now, 11, 24, 11, 26)) {
+        return { path: CHRISTMAS_LOGO, text: "Frohe Weihnachten!" };
+    }
+    
+    // --- 5. Adventszeit (Prüft den 1., 2., 3., 4. Advent) ---
+    const firstAdvent = getFirstAdventDate(year);
+    const MS_PER_DAY = 1000 * 60 * 60 * 24;
+    
+    // Wir prüfen die Zeitspanne vom 1. Advent bis zum 24. Dezember (exklusiv)
+    const christmasEveStart = new Date(year, 11, 24); 
+    christmasEveStart.setHours(0, 0, 0, 0); 
+    
+    if (now.getTime() >= firstAdvent.getTime() && now.getTime() < christmasEveStart.getTime()) {
+        
+        const diffTime = now.getTime() - firstAdvent.getTime();
+        const diffDays = Math.floor(diffTime / MS_PER_DAY);
+        
+        // Adventswoche: 0-6 Tage = 1. Advent, 7-13 Tage = 2. Advent, etc.
+        let adventWeek = Math.floor(diffDays / 7);
+        
+        // Logik: 0 -> 1, 1 -> 2, 2 -> 3, 3 -> 4
+        let logoIndex = adventWeek + 1; 
+        
+        // Begrenzung: Wir sind definitiv in der Adventszeit, aber maximal 4. Advent.
+        if (logoIndex > 4) {
+             logoIndex = 4;
+        }
+
+        const weekNumber = logoIndex;
+        return { path: ADVENT_LOGO_BASE + logoIndex + LOGO_EXTENSION, text: `Frohe ${weekNumber}. Adventswoche!` };
+    }
+
+
+    // --- 6. Standard-Logo (Wenn kein Feiertag) ---
+    return { path: DEFAULT_LOGO_PATH, text: "Lade Events..." };
+}
+// ERWEITERTE FEIERTAGS-LOGIK END
+
+
+// HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
 function formatToCalendarDateString(dateObject, isAllDay) {
     // Google Calendar URL und ICS verwenden das YYYYMMDD-Format für Ganztagesevents
     const year = dateObject.getFullYear();
@@ -859,7 +1045,7 @@ function downloadICS(event) {
     link.click();
     document.body.removeChild(link);
 }
-// ENDE NEUE HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
+// ENDE HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
 
 
 // --- 3. DATENABRUF VON GOOGLE KALENDER ---
@@ -958,9 +1144,9 @@ function fetchCalendarEvents() {
                     location: item.location || 'Keine Angabe',
                     description: item.description || 'Keine weitere Beschreibung vorhanden.',
                     providerId: providerId,
-                    sortDate: sortDate // Für die korrekte Sortierung
+                    sortDate: sortDate 
                 };
-            }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1); // "Blockiert" filtern
+            }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1); 
 
 			appLoader.style.display = 'none';
             
@@ -1214,8 +1400,8 @@ function showEventDetails(event) {
     const locationEncoded = encodeURIComponent(event.location);
     
     // Korrigierte Google Maps URL
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${locationEncoded}`; 
-    const locationLink = `<a href="${mapsUrl}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=$${locationEncoded}`; 
+    const locationLink = `<a href="https://maps.google.com/?q=$${locationEncoded}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
 
     // NEU: Kalender-URL generieren
     const googleCalendarUrl = getGoogleCalendarUrl(event); 
@@ -1244,7 +1430,7 @@ function showEventDetails(event) {
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
         <p>${cleanedDescription.replace(/\n/g, '<br>')}</p>
         
-		<div class="calendar-buttons">
+        <div class="calendar-buttons">
             <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
                 Zu Google Kalender hinzufügen
             </a>
@@ -1363,6 +1549,17 @@ function switchView(view) {
 }
 
 window.onload = () => {
+        // NEU: FEIERTAGS-LOGIK FÜR SPLASH SCREEN
+        const logoData = getSplashLogoPath();
+        const splashLogo = document.querySelector('#splashScreen .splash-logo');
+        
+        // Logo-Pfad und Text setzen
+        document.querySelector('#splashScreen p').textContent = logoData.text;
+        splashLogo.src = logoData.path;
+        splashLogo.alt = logoData.path.replace('.jpg', '');
+        
+        // ENDE FEIERTAGS-LOGIK
+
         fetchCalendarEvents();
         
         // Füge alle Nav-Button-Klicks hinzu
