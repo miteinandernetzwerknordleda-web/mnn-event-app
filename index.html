@@ -1293,28 +1293,31 @@ function createFilterButtons() {
 function applyCategoryFilter(providerId) {
     currentFilterId = providerId;
     
-    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('selected'));
-    
-    let targetButton;
+    // 1. **DEFINIERE DIE DATENQUELLE**
+    // WICHTIG: Wenn dynamicEvents (Online-Daten) leer sind, 
+    // verwende die letzte bekannte Version (lastKnownEvents).
+    const sourceData = dynamicEvents.length > 0 ? dynamicEvents : lastKnownEvents;
 
-    if (providerId === null) {
-        targetButton = document.querySelector('#filter-container .filter-btn:first-child'); 
-    } else {
-        targetButton = Array.from(document.querySelectorAll('.filter-btn')).find(btn => btn.textContent === providers.find(p => p.id === providerId)?.name);
+    // 2. **FILTERN DER DATEN**
+    // Filtere zuerst die gesamte Datenquelle
+    let filteredEvents = sourceData;
+
+    if (currentFilterId !== null) {
+        filteredEvents = sourceData.filter(event => event.providerId === currentFilterId);
     }
     
-    if (targetButton) {
-        targetButton.classList.add('selected');
+    // Wenn gesucht wird, filtere zusätzlich nach Suchbegriffen
+    const searchTerm = searchInput.value.toLowerCase();
+    if (searchTerm) {
+        filteredEvents = filteredEvents.filter(event => 
+            event.title.toLowerCase().includes(searchTerm) ||
+            event.description.toLowerCase().includes(searchTerm)
+        );
     }
 
-    let filtered;
-    if (providerId === null) {
-        filtered = dynamicEvents;
-    } else {
-        filtered = dynamicEvents.filter(event => event.providerId === providerId);
-    }
-
-    renderEventList(filtered);
+    // 3. **RENDERN UND ANZEIGEN**
+    // Die Event-Liste rendern
+    renderEventList(filteredEvents); 
 }
 // --- ENDE FUNKTIONEN FÜR KATEGORIE-FILTER ---
 
