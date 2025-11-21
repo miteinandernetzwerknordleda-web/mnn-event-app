@@ -1,0 +1,22 @@
+{
+  "name": "Miteinander Netzwerk Nordleda",
+  "short_name": "Netzwerk Nordleda",
+  "description": "Alle aktuellen Events aus Nordleda auf einen Blick.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#8B4513",
+  "theme_color": "#8B4513",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
