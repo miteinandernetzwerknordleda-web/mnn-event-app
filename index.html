@@ -528,7 +528,7 @@
 <body>
 
 <div id="splashScreen">
-    <img src="/mnn-event-app/splashlogo.png" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
+    <img src="/mnn-event-app/Splashlogo.png" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
     <h1>
         EventApp
     </h1>
@@ -1358,8 +1358,7 @@ function filterEvents() {
     
     if (document.getElementById('events-btn').classList.contains('active')) {
         
-        const eventsToSearch = dynamicEvents;
-		const eventsToSearch = lastKnownEvents.length > 0 ? lastKnownEvents : dynamicEvents;
+        const eventsToSearch = lastKnownEvents.length > 0 ? lastKnownEvents : dynamicEvents;
 
         const filteredEvents = eventsToSearch.filter(event => {
             const provider = providers.find(p => p.id == event.providerId);
