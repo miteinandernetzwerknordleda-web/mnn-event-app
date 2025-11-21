@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lokale Events App</title>
-<style>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <style>
 * {
     box-sizing: border-box; 
 }
@@ -131,6 +135,28 @@
         flex-grow: 1; 
         text-align: left; 
     }
+    
+    /* Styling für den Refresh Button */
+    #refreshButton {
+        background: none;
+        border: 1px solid white; 
+        color: white;           /* WICHTIG: Macht das Symbol weiß */
+        font-size: 1.4em; 
+        cursor: pointer;
+        padding: 5px 10px;
+        margin-left: 15px;
+        border-radius: 5px;
+        transition: background-color 0.2s;
+        line-height: 1; 
+    }
+
+    #refreshButton:hover {
+        background-color: #A0522D; 
+    }
+    #refreshButton:active {
+        background-color: #694429; 
+    }
+    /* ENDE Refresh Styling */
 
 	#search-container {
         max-width: 600px;
@@ -226,6 +252,62 @@
         font-size: 0.9em;
         color: #000000;
     }
+    
+    /* NEUER STIL FÜR MONATSTRENNUNG */
+    .month-separator {
+        background-color: #e8e8e8; /* Hintergrundfarbe des Trenners */
+        color: #8B4513;            /* Braune Textfarbe */
+        padding: 10px 20px;
+        margin: 10px 0 0;
+        font-size: 1.2em;
+        font-weight: bold;
+        position: sticky;          /* Wichtig: Lässt den Header kleben */
+        top: 60px;                 /* Soll unter dem Haupt-Header (ca. 60px Höhe) kleben */
+        z-index: 5;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Anpassung der Karten-Abstände */
+    #app-content .card {
+        margin: 15px 20px; /* Kartenabstand für die Trennung */
+    }
+
+    /* NEUER STIL FÜR KALENDER-BUTTONS */
+.calendar-buttons {
+    margin-top: 25px;
+    padding-top: 15px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    /* Container auf volle Breite des Modals setzen */
+    display: flex;
+    flex-direction: column; 
+    gap: 10px; /* Abstand zwischen den Buttons */
+}
+
+.calendar-link-btn {
+    display: block; 
+    width: 100%; /* Beide Buttons nehmen volle Container-Breite ein */
+    
+    /* Konsistente Farbgebung */
+    background-color: #A0522D; /* Dunklere Variante Ihres Brauns */
+    color: white;
+    
+    padding: 12px;
+    margin: 0; /* Margin im Container durch gap ersetzt */
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.2s;
+    font-size: 1em;
+    border: none;
+    cursor: pointer;
+}
+
+.calendar-link-btn:hover {
+    background-color: #694429; /* Noch dunkler beim Hover */
+    opacity: 1; /* Überschreibe das generische opacity: 0.9 */
+}
+
 
 /* 3. KARTEN-STIL (Ergänzung für Datum & Abstand) */
     
@@ -435,6 +517,7 @@
         <img id="app-logo" src="logo.png" alt="Vereins Logo">
     </div>
     <h1 id="headerTitle">Veranstaltungen</h1>
+    <button id="refreshButton">↻</button> 
 </header>
 
 <div id="search-container">
@@ -465,15 +548,12 @@
         <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
         
         <h2>WhatsApp Kanal für Veranstaltungen</h2>
-        <p>Abonniert unseren Kanal, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf euer Handy zu erhalten.<br>
+        <p>Abonniert  unseren Kanal, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf euer Handy zu erhalten.<br>
 		Dieser Kanal dient nur der Information durch uns.</p>
         <div style="margin-top: 20px; text-align: center;">
             <a href="https://whatsapp.com/channel/0029VbBsgtIK0IBZMmtQJ61J" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
                 Kanal abonnieren
             </a>
-			<br>
-			<br>
-			<br>
         </div>
         
     </div>
@@ -481,8 +561,8 @@
     <div id="contact-view" class="static-view">
         
         <h2>Feedback, Anfragen & Support</h2>
-        <p>Habt ihr allgemeine Fragen, möchtet ihr eine Veranstaltung melden oder benötigt ihr technischen Support für diese App?</p>
-        <p>Bitte nutzt unsere zentrale E-Mail-Adresse. Wir freuen uns auf eure Nachricht!</p>
+        <p>Habet ihr allgemeine Fragen, möchtet ihr eine Veranstaltung melden oder benötigt ihr technischen Support für diese App?</p>
+        <p>Bitte nutzt unsere zentrale E-Mail-Adresse.</p>
         
         <h3 style="color: #8B4513;">Zentrale Kontaktstelle:</h3>
         <div style="margin-top: 20px; margin-bottom: 40px;">
@@ -513,9 +593,6 @@
         <p style="font-size: 0.9em; margin-top: 20px;">
             *Hinweis:* Wir sind bemüht, die Informationen in dieser App aktuell und korrekt zu halten. Da die App ausschließlich zur Bekanntmachung von lokalen Veranstaltungen dient, übernehmen wir keine Haftung für die Richtigkeit der Termine und Inhalte der Veranstalter.
         </p>
-		<br>
-		<br>
-		<br>
     </div>
     <div id="eventModal" class="modal">
     <div class="modal-content">
@@ -586,6 +663,7 @@
     let dynamicEvents = [];
     let currentFilterId = null; 
     let startTime; 
+    window.eventDetailsCache = null; // Cache für ICS-Download
 
     // --- 2. HILFSFUNKTIONEN ---
 
@@ -603,7 +681,7 @@
 function getEmbeddableDriveLink(description) {
     if (!description) return null;
     const fileIdRegex = /(?:file\/d\/|id=)([a-zA-Z0-9_-]+)/;
-	    const match = description.match(fileIdRegex);
+    const match = description.match(fileIdRegex);
     
     if (match && match[1]) {
         const fileId = match[1].trim();
@@ -611,6 +689,178 @@ function getEmbeddableDriveLink(description) {
     }
     return null;
 }
+
+// NEUE HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
+function formatToCalendarDateString(dateObject, isAllDay) {
+    // Google Calendar URL und ICS verwenden das YYYYMMDD-Format für Ganztagesevents
+    const year = dateObject.getFullYear();
+    const month = ('0' + (dateObject.getMonth() + 1)).slice(-2);
+    const day = ('0' + dateObject.getDate()).slice(-2);
+
+    if (isAllDay) {
+        return `${year}${month}${day}`; // YYYYMMDD
+    } else {
+        // YYYYMMDDTHHMMSS (Lokale Zeit)
+        const hour = ('0' + dateObject.getHours()).slice(-2);
+        const minute = ('0' + dateObject.getMinutes()).slice(-2);
+        return `${year}${month}${day}T${hour}${minute}00`; 
+    }
+}
+
+
+function getGoogleCalendarUrl(event) {
+    const title = encodeURIComponent(event.title);
+    const description = encodeURIComponent(event.description.replace(/\n/g, ' ')); 
+    const location = encodeURIComponent(event.location);
+    
+    let isAllDay = event.endDate === ''; 
+    let startMoment = new Date(event.sortDate); 
+    let endMoment;
+
+    // 1. Startzeitpunkt bestimmen
+    if (isAllDay) {
+        // All-Day: Start ist Mitternacht
+        startMoment.setHours(0, 0, 0, 0); 
+    } else {
+        // Timed Event: Zeit aus event.date parsen (z.B. "20:00 Uhr")
+        const timeMatch = event.date.match(/(\d{2}):(\d{2})/);
+        if (timeMatch) {
+            startMoment.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
+        }
+    }
+    
+    // 2. Endzeitpunkt bestimmen
+    if (isAllDay) {
+        // All-Day: Endet am nächsten Tag um Mitternacht (exklusiv)
+        endMoment = new Date(startMoment);
+        endMoment.setDate(endMoment.getDate() + 1);
+    } else {
+        // Timed Event: Endzeit aus event.endDate parsen (z.B. "22:00 Uhr")
+        endMoment = new Date(startMoment);
+        const endTimeMatch = event.endDate.match(/(\d{2}):(\d{2})/);
+        if (endTimeMatch) {
+            endMoment.setHours(parseInt(endTimeMatch[1]), parseInt(endTimeMatch[2]), 0, 0);
+            
+            // Falls Endzeit vor Startzeit liegt (über Mitternacht hinaus):
+            if(endMoment.getTime() < startMoment.getTime()) {
+                endMoment.setDate(endMoment.getDate() + 1);
+            }
+        } else {
+            // Falls Endzeit fehlt: 1 Stunde Dauer
+            endMoment.setHours(startMoment.getHours() + 1);
+        }
+    }
+
+    // 3. Formatierung für URL
+    let startFormatted = formatToCalendarDateString(startMoment, isAllDay);
+    let endFormatted = formatToCalendarDateString(endMoment, isAllDay);
+    
+    const datesParam = `${startFormatted}/${endFormatted}`;
+
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${datesParam}&details=${description}&location=${location}&sf=true`;
+    
+    return calendarUrl;
+}
+
+function getICSContent(event) {
+    const provider = providers.find(p => p.id == event.providerId);
+    const organizer = provider ? `ORGANIZER;CN=${provider.name}:mailto:${provider.contact || 'noreply@nordleda.de'}` : '';
+
+    // Datum- & Zeit-Objekte (gleiche Logik wie in getGoogleCalendarUrl)
+    let isAllDay = event.endDate === ''; 
+    let startMoment = new Date(event.sortDate); 
+    let endMoment;
+
+    if (isAllDay) {
+        startMoment.setHours(0, 0, 0, 0); 
+        endMoment = new Date(startMoment);
+        endMoment.setDate(endMoment.getDate() + 1);
+    } else {
+        const timeMatch = event.date.match(/(\d{2}):(\d{2})/);
+        if (timeMatch) {
+            startMoment.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
+        }
+        endMoment = new Date(startMoment);
+        const endTimeMatch = event.endDate.match(/(\d{2}):(\d{2})/);
+        if (endTimeMatch) {
+            endMoment.setHours(parseInt(endTimeMatch[1]), parseInt(endTimeMatch[2]), 0, 0);
+            if(endMoment.getTime() < startMoment.getTime()) {
+                endMoment.setDate(endMoment.getDate() + 1);
+            }
+        } else {
+            endMoment.setHours(startMoment.getHours() + 1);
+        }
+    }
+    
+    // ICS benötigt YYYYMMDDTHHMMSS im lokalen Format oder DTSTART;VALUE=DATE für all-day
+    const icsFormatDate = (date) => {
+        const year = date.getFullYear();
+        const month = ('0' + (date.getMonth() + 1)).slice(-2);
+        const day = ('0' + date.getDate()).slice(-2);
+        return `${year}${month}${day}`;
+    };
+    
+    const icsFormatTime = (date) => {
+        const hour = ('0' + date.getHours()).slice(-2);
+        const minute = ('0' + date.getMinutes()).slice(-2);
+        const second = ('0' + date.getSeconds()).slice(-2);
+        return `T${hour}${minute}${second}`;
+    }
+    
+    let icsStartLine;
+    let icsEndLine;
+    
+    if (isAllDay) {
+        // DTSTART;VALUE=DATE:YYYYMMDD
+        icsStartLine = `DTSTART;VALUE=DATE:${icsFormatDate(startMoment)}`;
+        // DTEND;VALUE=DATE:YYYYMMDD (exklusiv, also +1 Tag)
+        icsEndLine = `DTEND;VALUE=DATE:${icsFormatDate(endMoment)}`; 
+    } else {
+        // DTSTART:YYYYMMDDTHHMMSS
+        icsStartLine = `DTSTART:${icsFormatDate(startMoment)}${icsFormatTime(startMoment)}`;
+        icsEndLine = `DTEND:${icsFormatDate(endMoment)}${icsFormatTime(endMoment)}`; 
+    }
+
+
+    const icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//MiteinanderNetzwerkNordleda//EventApp//DE',
+        'CALSCALE:GREGORIAN',
+        'BEGIN:VEVENT',
+        `UID:${event.id}-${Date.now()}@nordleda.de`,
+        `DTSTAMP:${new Date().toISOString().replace(/[-:]|\.\d{3}/g, '').slice(0, 15)}Z`,
+        icsStartLine,
+        icsEndLine,
+        `SUMMARY:${event.title}`,
+        // Description muss Zeilenumbrüche mit \n und andere Sonderzeichen maskieren
+        `DESCRIPTION:${event.description.replace(/,/g, '\\,').replace(/\n/g, '\\n')}`,
+        `LOCATION:${event.location.replace(/,/g, '\\,')}`,
+        organizer,
+        'END:VEVENT',
+        'END:VCALENDAR'
+    ].join('\n');
+
+    return icsContent;
+}
+
+function downloadICS(event) {
+    if (!event) return; 
+    
+    const icsContent = getICSContent(event);
+    
+    // Erstellt eine temporäre Blob-URL, um den Download auszulösen
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    // Ersetzt alle Nicht-Alphanumerischen Zeichen mit Unterstrich für den Dateinamen
+    link.setAttribute('download', `${event.title.replace(/[^a-z0-9]/gi, '_').substring(0, 50)}.ics`); 
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+// ENDE NEUE HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
+
 
 // --- 3. DATENABRUF VON GOOGLE KALENDER ---
 
@@ -666,16 +916,25 @@ function fetchCalendarEvents() {
                 let endDate = '';
 
                 if (isTimedEvent) {
+                    // Beispiel: "21. November 2025, 20:00 Uhr"
                     startDate = eventStart.toLocaleDateString('de-DE', {
                         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                    }).trim();
-
-                    endDate = new Date(item.end.dateTime).toLocaleTimeString('de-DE', {
+                    }).replace(':', ':').trim();
+                    
+                    // Nur Endzeit extrahieren (z.B. "22:00 Uhr")
+                    const eventEnd = new Date(item.end.dateTime);
+                    endDate = eventEnd.toLocaleTimeString('de-DE', {
                         hour: '2-digit', minute: '2-digit'
-                    }).trim();
+                    }).trim() + ' Uhr';
+
 
                 } else {
-                    startDate = eventStart.toLocaleDateString('de-DE', {
+                    // Ganztägige Events
+                    const tempDate = new Date(item.start.date);
+                    // Korrektur: All-day Events in Google Calendar werden manchmal als 'end: 2025-11-22' und 'start: 2025-11-21' geliefert
+                    // Wir nehmen nur den Starttag und ignorieren die Zeit.
+                    
+                    startDate = tempDate.toLocaleDateString('de-DE', {
                         year: 'numeric', month: 'long', day: 'numeric'
                     }).trim();
                 }
@@ -684,6 +943,10 @@ function fetchCalendarEvents() {
                 const dayOfWeekShort = eventStart.toLocaleDateString('de-DE', {
                     weekday: 'short'
                 }).slice(0, 2);
+                
+                // Monat/Jahr für die Sortierung speichern
+                const sortDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+
 
                 return {
                     id: index,
@@ -695,8 +958,10 @@ function fetchCalendarEvents() {
                     location: item.location || 'Keine Angabe',
                     description: item.description || 'Keine weitere Beschreibung vorhanden.',
                     providerId: providerId,
+                    sortDate: sortDate // Für die korrekte Sortierung
                 };
-            });
+            }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1); // "Blockiert" filtern
+
 			appLoader.style.display = 'none';
             
             // FILTERLEISTE SICHTBAR MACHEN UND INITIALISIEREN
@@ -714,26 +979,42 @@ function fetchCalendarEvents() {
         });
 }
 	
-// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN ---
-
-	function renderEventList(eventsToRender = dynamicEvents) {
+// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT MONATSTRENNUNG) ---
+function renderEventList(eventsToRender = dynamicEvents) {
     headerTitle.textContent = "Veranstaltungen";
     contentDiv.innerHTML = '';
+    
+    // Sortierung der Events nach Datum
+    eventsToRender.sort((a, b) => a.sortDate - b.sortDate);
+
     if (eventsToRender.length === 0) {
         contentDiv.innerHTML = `<p style="margin: 20px;">Keine zukünftigen Veranstaltungen gefunden.</p>`;
         return;
     }
+    
+    let currentMonth = null;
+    const dateFormatter = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' });
 
     eventsToRender.forEach(event => {
         const provider = providers.find(p => p.id == event.providerId);
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
-        
         const cardColor = provider ? provider.color : '#aaaaaa';
+        
+        // Monat und Jahr formatieren
+        const monthAndYear = dateFormatter.format(event.sortDate);
+        
+        // PRÜFUNG AUF MONATSWECHSEL
+        if (monthAndYear !== currentMonth) {
+            currentMonth = monthAndYear;
+            const separator = document.createElement('div');
+            separator.className = 'month-separator';
+            separator.textContent = currentMonth;
+            contentDiv.appendChild(separator);
+        }
 
         const card = document.createElement('div');
         card.className = 'card';
         card.style.borderLeftColor = cardColor;
-        
         card.style.setProperty('--event-color', cardColor);
         
         card.style.display = 'flex';
@@ -755,6 +1036,7 @@ function fetchCalendarEvents() {
         contentDiv.appendChild(card);
     });
 }
+// --- ENDE FUNKTIONEN ZUM RENDERN DER LISTEN ---
 
 // --- FUNKTIONEN FÜR KATEGORIE-FILTER ---
 
@@ -889,7 +1171,7 @@ function filterEvents() {
 }
 
 
-// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS ---
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (MIT KALENDER-LOGIK) ---
 
 function showEventDetails(event) {
     const provider = providers.find(p => p.id == event.providerId);
@@ -911,11 +1193,32 @@ function showEventDetails(event) {
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
         : '';
 
-    const timeDisplay = event.endDate ? `${event.date} – ${event.endDate} Uhr` : event.date;
+    // NEU: Zeit-Anzeige korrigiert (Timed vs. All-Day)
+    let timeDisplay;
+    if (event.endDate) {
+        // Timed Event: event.date enthält Startdatum/zeit, event.endDate enthält Endzeit
+        const startDatePart = event.date.split(',')[0]; // z.B. "21. November 2025"
+        const startTimePart = event.date.match(/(\d{2}:\d{2})/)?.[0] || '';
+        
+        if(startTimePart) {
+            // Angabe mit Start- und Endzeit
+            timeDisplay = `Am ${startDatePart} von ${startTimePart} bis ${event.endDate}`;
+        } else {
+            // Falls Startzeit fehlt, nur Datum und Endzeit
+            timeDisplay = `${event.date} bis ${event.endDate}`;
+        }
+    } else {
+        timeDisplay = `${event.date} (Ganztägig)`;
+    }
+        
     const locationEncoded = encodeURIComponent(event.location);
     
-    const mapsUrl = `http://maps.google.com/maps?q=${locationEncoded}`;
+    // Korrigierte Google Maps URL
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${locationEncoded}`; 
     const locationLink = `<a href="${mapsUrl}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
+
+    // NEU: Kalender-URL generieren
+    const googleCalendarUrl = getGoogleCalendarUrl(event); 
 
     const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
@@ -939,11 +1242,25 @@ function showEventDetails(event) {
             </strong>
         </p>
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
-        <p>${cleanedDescription.replace(/\n/g, '<br>')}</p> `;
+        <p>${cleanedDescription.replace(/\n/g, '<br>')}</p>
+        
+		<div class="calendar-buttons">
+            <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
+                Zu Google Kalender hinzufügen
+            </a>
+            <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
+                Als .ics-Datei herunterladen (Outlook, Apple)
+            </button>
+        </div>
+        `;
+    
+    // Event im Cache speichern, um es im ICS-Download verwenden zu können
+    window.eventDetailsCache = event;
     
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
     eventModal.style.display = "block";
 }
+
 
     function showVeranstalterDetails(providerId) {
         closeModal('eventModal'); 
@@ -972,6 +1289,25 @@ function showEventDetails(event) {
     function closeModal(modalId) {
         document.getElementById(modalId).style.display = "none";
     }
+    
+    // NEU: Refresh-Funktion
+    function handleRefresh() {
+        // 1. Ladehinweis und Spinner anzeigen
+        contentDiv.innerHTML = '';
+        appLoader.style.display = 'block';
+        headerTitle.textContent = "Aktualisiere..."; 
+
+        // 2. Events neu laden (mit Filter-Reset)
+        currentFilterId = null;
+        searchInput.value = '';
+        
+        // 3. Nach dem Laden wird der Loader in fetchCalendarEvents wieder versteckt
+        fetchCalendarEvents(); 
+        
+        // 4. Zur Events-Ansicht wechseln, falls nötig
+        switchView('events');
+    }
+    // ENDE NEU: Refresh-Funktion
 
 // --- 6. NAVIGATION UND START (ERWEITERT) ---
 
@@ -1034,6 +1370,9 @@ window.onload = () => {
         document.getElementById('providers-btn').onclick = () => switchView('providers');
         document.getElementById('whatsapp-btn').onclick = () => switchView('whatsapp');
         document.getElementById('contact-btn').onclick = () => switchView('contact');
+        
+        // NEU: Refresh Button Event Listener
+        document.getElementById('refreshButton').onclick = handleRefresh;
 
         // Suchfunktion nur für Events/Anbieter
         searchInput.addEventListener('input', filterEvents);
@@ -1047,7 +1386,20 @@ window.onload = () => {
             veranstalterModal.style.display = "none";
         }
     }
+    
+    // --- 7. SERVICE WORKER REGISTRIERUNG ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('ServiceWorker registriert mit Scope:', registration.scope);
+                })
+                .catch(error => {
+                    console.log('ServiceWorker Registrierung fehlgeschlagen:', error);
+                });
+        });
+    }
+    // --- ENDE SERVICE WORKER REGISTRIERUNG ---
 </script>
 </body>
 </html>
-
