@@ -702,6 +702,7 @@
     let currentFilterId = null; 
     let startTime; 
     window.eventDetailsCache = null; 
+	let lastKnownEvents = [];
 
     // --- 2. HILFSFUNKTIONEN ---
 
@@ -1052,7 +1053,12 @@ function downloadICS(event) {
 
 function fetchCalendarEvents() {
     startTime = Date.now(); 
-
+    
+    // Falls wir bereits gecachte Events haben, zeigen wir diese sofort an
+    if (lastKnownEvents.length > 0) {
+        applyCategoryFilter(currentFilterId);
+    }
+    
     const hideSplash = () => {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = MIN_SPLASH_DURATION - elapsedTime;
@@ -1073,7 +1079,10 @@ function fetchCalendarEvents() {
     };
 
     headerTitle.textContent = "Veranstaltungen";
-    contentDiv.innerHTML = '';
+    // Löschen des Inhalts nur, wenn wir noch keine Events haben
+    if (lastKnownEvents.length === 0) {
+        contentDiv.innerHTML = '';
+    }
 
     const threeMonthsFromNow = new Date();
     threeMonthsFromNow.setDate(threeMonthsFromNow.getDate() + 90);
@@ -1084,14 +1093,17 @@ function fetchCalendarEvents() {
     fetch(API_URL)
         .then(response => {
             if (!response.ok) {
-                appLoader.style.display = 'none';
-                hideSplash(); 
-                throw new Error(`HTTP error! status: ${response.status}. API-Schlüssel oder Kalender-ID prüfen.`);
+                // Wenn die Antwort nicht OK ist (z.B. 404, 403), werfen wir einen Fehler
+                throw new Error(`HTTP error! status: ${response.status}.`);
             }
             return response.json();
         })
         .then(data => {
+            // Daten erfolgreich geladen: Neue Events verarbeiten und speichern
             dynamicEvents = data.items.map((item, index) => {
+                // ... (Hier der gesamte Mapping-Block, der Event-Daten verarbeitet) ...
+                // Fügen Sie den kompletten Event-Mapping-Code von Zeile 1100 bis 1150 HIER ein
+                
                 const rawTitle = item.summary || '';
                 const providerId = extractProviderId(rawTitle);
                 
@@ -1147,7 +1159,9 @@ function fetchCalendarEvents() {
                     sortDate: sortDate 
                 };
             }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1); 
-
+            
+            // NEU: Events global speichern und anzeigen
+            lastKnownEvents = dynamicEvents; 
 			appLoader.style.display = 'none';
             
             // FILTERLEISTE SICHTBAR MACHEN UND INITIALISIEREN
@@ -1158,10 +1172,33 @@ function fetchCalendarEvents() {
             hideSplash(); 
         })	
         .catch(error => {
-            headerTitle.textContent = "Fehler beim Laden!";
-            contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: ${error.message}.</p>`;
-            console.error("Error fetching events:", error);
+            // NEU: Fehlerbehandlung für Offline-Modus
+            appLoader.style.display = 'none';
             hideSplash(); 
+            
+            if (lastKnownEvents.length > 0) {
+                 // Wenn Events im Speicher sind, verwenden wir diese
+                 console.log("Offline-Modus: Zeige letzte bekannte Events.");
+                 headerTitle.textContent = "Veranstaltungen (Offline)";
+                 // Nur anzeigen, wenn wir nicht gerade filtern/suchen
+                 if (!searchInput.value) { 
+                     renderEventList(lastKnownEvents);
+                 } else {
+                      // Wenn Offline und gesucht wird, nur die Suche auf den alten Daten ausführen
+                      filterEvents();
+                 }
+                 // Setzt den Filter-Container wieder sichtbar
+                 filterContainer.style.display = 'block';
+
+            } else {
+                // Wenn wir KEINE Events im Speicher haben, dann zeigen wir den Fehler
+                headerTitle.textContent = "Veranstaltungen";
+                contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: Du bist offline oder der Server ist nicht erreichbar.</p>`;
+                console.error("Error fetching events:", error);
+                
+                // Setzt den Filter-Container unsichtbar, da keine Daten da sind
+                filterContainer.style.display = 'none';
+            }
         });
 }
 	
@@ -1322,6 +1359,7 @@ function filterEvents() {
     if (document.getElementById('events-btn').classList.contains('active')) {
         
         const eventsToSearch = dynamicEvents;
+		const eventsToSearch = lastKnownEvents.length > 0 ? lastKnownEvents : dynamicEvents;
 
         const filteredEvents = eventsToSearch.filter(event => {
             const provider = providers.find(p => p.id == event.providerId);
