@@ -1,6 +1,6 @@
 
     // --- 1. KONFIGURATION ---
-    const API_KEY = 'AIzaSyDDsCuRzCYH-U3tjoTu1VCiv641zY7K4Cc';
+    const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
     const MIN_SPLASH_DURATION = 4000; 
     
