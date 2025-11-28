@@ -5,7 +5,7 @@
 /* 1. GLOBALE STILE */
 
     #splashScreen {
-        position: fixed; 
+        position: relative; 
         top: 0;
         left: 0;
         width: 100%;
@@ -49,12 +49,20 @@
     
     /* Copyright Styling */
     #splash-copyright {
-        position: absolute; 
-        bottom: 20px; 
-        width: 100%;
-        text-align: center;
-        font-size: 0.8em;
-        color: #666;
+	/* Nimmt das Element aus dem normalen Fluss */
+		position: absolute; 
+		
+		/* Positioniert es 20px vom unteren Rand */
+		bottom: 20px; 
+		
+		/* Zentriert den Block horizontal */
+		left: 50%;
+		transform: translateX(-50%); 
+		
+		/* Styling für Text */
+		text-align: center;
+		font-size: 0.8em;
+		color: #666; /* Wählen Sie eine passende Farbe */
     }
 
     body {
