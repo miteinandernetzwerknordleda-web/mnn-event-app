@@ -885,10 +885,10 @@
 		contentDiv.style.display = 'none';
 		whatsappView.style.display = 'none';
 		contactView.style.display = 'none';
-		filterContainer.style.display = 'none';
+		//filterContainer.style.display = 'none';
 		
 		// Suchcontainer komplett ausblenden, um den Platz zu entfernen
-		searchContainer.style.display = 'none'; 
+		//searchContainer.style.display = 'none'; 
 	}
 
 	function switchView(view) {
@@ -897,28 +897,28 @@
 		
 		// 2. Alle Inhalte verstecken
 		hideAllViews();
+		filterContainer.style.display = 'none';
+		searchContainer.style.display = 'none';
 		
 		// 3. Ansicht wechseln
-		if (view === 'events') {
-			document.getElementById('events-btn').classList.add('active');
-			headerTitle.textContent = "Veranstaltungen";
-			contentDiv.style.display = 'block';
-			searchContainer.style.display = 'block'; // Suchcontainer anzeigen
-			searchInput.style.display = 'block';
-			filterContainer.style.display = 'block'; 
-
-			// Bei Event-View: Liste rendern/filtern
-			applyCategoryFilter(currentFilterId);
-
-		} else if (view === 'providers') {
-			document.getElementById('providers-btn').classList.add('active');
-			headerTitle.textContent = "Anbieter";
-			contentDiv.style.display = 'block';
-			searchContainer.style.display = 'block'; // Suchcontainer anzeigen
-			searchInput.style.display = 'block';
-			
-			// Bei Anbieter-View: Liste rendern
-			renderProviderList();
+		if (view === 'events' || view === 'providers') {
+        // Für Events und Anbieter: Filter und Suche sind notwendig
+        searchContainer.style.display = 'block';
+        
+        // Filter-Buttons sind nur für Events notwendig (oder auch für Anbieter, je nach Design)
+        if (view === 'events') {
+            filterContainer.style.display = 'block';
+        }
+        
+        document.getElementById(`${view}-btn`).classList.add('active');
+        headerTitle.textContent = (view === 'events' ? "Veranstaltungen" : "Anbieter");
+        contentDiv.style.display = 'block';
+        
+        if (view === 'events') {
+            applyCategoryFilter(currentFilterId);
+        } else {
+            renderProviderList();
+        }	
 
 		} else if (view === 'whatsapp') {
 			document.getElementById('whatsapp-btn').classList.add('active');
