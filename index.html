@@ -3,147 +3,518 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lokale Events App</title>
-
-<link rel="stylesheet" href="/mnn-event-app/styles.css"> 
-
-<link rel="manifest" href="/mnn-event-app/manifest.json">
-	<meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <title>Lokale Events App</title>
+    <!-- Lade Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
+    <script>
+        // Tailwind Konfiguration für Braun-Töne und Schriftart
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary': '#8B4513', // Saddle Brown
+                        'secondary': '#25D366', // WhatsApp Green
+                        'background': '#f4f7f6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /*
+        * WICHTIG: Korrektur für das Überlappen der Monatsnamen durch die Navigation
+        * Erhöht das Padding am unteren Ende des Hauptcontainers
+        */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 80px; /* Platz für die Navigation */
+        }
+
+        /* Setzt Polsterung für scrollbaren Inhalt */
+        #app-content, .static-view {
+            padding: 1rem;
+            padding-bottom: 100px; /* Zusätzlicher Platz am Ende, um Nav-Leiste auszugleichen */
+        }
+        
+        body {
+            background-color: #e5e7eb;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ==================== SPLASH SCREEN ==================== */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--background);
+            color: var(--primary);
+            z-index: 1000;
+            transition: opacity 1s ease-out;
+        }
+        .splash-logo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+        }
+        #splashScreen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #splash-copyright {
+            position: absolute;
+            bottom: 20px;
+            font-size: 0.75rem;
+            color: #666;
+            text-align: center;
+        }
+
+        /* ==================== HEADER & SEARCH ==================== */
+        #app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem;
+            background-color: white;
+            border-bottom: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        #logo-container {
+            width: 40px;
+            height: 40px;
+        }
+        #app-logo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        #headerTitle {
+            flex-grow: 1;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        #refreshButton {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0 5px;
+            transition: transform 0.2s;
+        }
+        #refreshButton:active {
+            transform: rotate(360deg);
+        }
+
+        #search-container {
+            padding: 0 1rem 1rem 1rem;
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 61px; /* Unterhalb des Headers */
+            z-index: 9;
+        }
+        #searchInput {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        /* ==================== FILTER BUTTONS ==================== */
+        #filter-container {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 0.5rem 1rem;
+            gap: 0.5rem;
+            background-color: white;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 118px; /* Unterhalb von Header und Search */
+            z-index: 8;
+        }
+        .filter-btn {
+            padding: 0.35rem 0.8rem;
+            border: 1px solid var(--primary);
+            border-radius: 20px;
+            background-color: white;
+            color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .filter-btn.selected {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* ==================== EVENT CARDS & SEPARATORS ==================== */
+        .month-separator {
+            padding: 0.5rem 1rem;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            background-color: #eef1f4;
+            border-radius: 6px;
+            border-left: 5px solid var(--primary);
+            text-transform: capitalize;
+        }
+
+        .card {
+            display: flex;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            border-left: 6px solid var(--event-color, #8B4513); /* Dynamische Farbe vom JS */
+        }
+        .card:active {
+            transform: scale(0.99);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .date-container {
+            flex-shrink: 0;
+            text-align: center;
+            padding-right: 1rem;
+            border-right: 1px solid #eee;
+            margin-right: 1rem;
+        }
+        .date-day-num {
+            display: block;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #333;
+            line-height: 1;
+        }
+        .date-day-short {
+            display: block;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #8B4513;
+            font-weight: 600;
+        }
+        .card-content h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 0.25rem 0;
+            color: #333;
+        }
+        .card-content p {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+            line-height: 1.3;
+        }
+        .card-content p strong {
+            font-weight: 500;
+            color: #444;
+        }
+        
+        /* ==================== LOADER ==================== */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border-left-color: var(--primary);
+            animation: spin 1s ease infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ==================== NAVIGATION (FOOTER) ==================== */
+        #navigation {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            border-top: 1px solid #ddd;
+            z-index: 20;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            padding: 5px 0;
+        }
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 8px 5px;
+            cursor: pointer;
+            transition: color 0.2s;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .nav-btn:before {
+            content: '';
+            font-size: 1.25rem;
+        }
+        #events-btn:before { content: '📅'; }
+        #providers-btn:before { content: '🏢'; }
+        #whatsapp-btn:before { content: '💬'; }
+        #contact-btn:before { content: '📧'; }
+
+        .nav-btn.active {
+            color: var(--primary);
+        }
+        .nav-btn:focus {
+            outline: none;
+        }
+
+        /* ==================== MODALS ==================== */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 50px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #333;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .event-image-container {
+            margin: 1rem 0;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+        .event-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            object-fit: cover;
+        }
+        
+        .calendar-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .calendar-link-btn {
+            display: block;
+            text-align: center;
+            padding: 10px;
+            background-color: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .calendar-link-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+    </style>
 </head>
 <body>
 
 <div id="splashScreen">
-    <img src="/mnn-event-app/Splashlogo.png" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
+    <!-- Bitte ersetzen Sie diese Platzhalter durch echte Bilder: /mnn-event-app/Splashlogo.png und /mnn-event-app/logo.png -->
+    <img src="https://placehold.co/150x150/8B4513/FFF?text=Splash" alt="Miteinander Netzwerk Nordleda Logo" class="splash-logo">
     <h1>
         EventApp
     </h1>
     <p>Lade Events...</p>
     <div id="splash-copyright">
-		Version 1.0.101 <br>
+        Version 1.0.101 <br>
         (c) 2025 Miteinander Netzwerk Nordleda
     </div>
 </div>
 
 <div class="container">
-<header id="app-header">
-    <div id="logo-container">
-        <img id="app-logo" src="/mnn-event-app/logo.png" alt="Vereins Logo">
-    </div>
-    <h1 id="headerTitle">Veranstaltungen</h1>
-    <button id="refreshButton">↻</button> 
-</header>
+    <header id="app-header">
+        <div id="logo-container">
+            <img id="app-logo" src="https://placehold.co/40x40/8B4513/FFF?text=L" alt="Vereins Logo">
+        </div>
+        <h1 id="headerTitle">Veranstaltungen</h1>
+        <button id="refreshButton" title="Daten neu laden">↻</button>
+    </header>
 
-<div id="search-container">
-    <input type="text" id="searchInput" placeholder="Events, Anbieter oder Ort suchen...">
-</div>
-
-<div id="filter-container" style="display: none;">
+    <div id="search-container">
+        <input type="text" id="searchInput" placeholder="Events, Anbieter oder Ort suchen...">
     </div>
-<div id="app-loader" style="text-align: center; padding-top: 50px; display: none;">
-    <div class="spinner"></div>
-    <p style="margin-top: 15px; color: #666;">Veranstaltungen werden geladen...</p>
-</div>
 
-    <div id="app-content" style="padding-bottom: 70px;">
+    <div id="filter-container" style="display: none;">
     </div>
-    
-    <div id="whatsapp-view" class="static-view">
-        
+
+    <div id="app-loader" style="text-align: center; padding-top: 50px; display: none;">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; color: #666;">Veranstaltungen werden geladen...</p>
+    </div>
+
+    <!-- ACHTUNG: Die Polsterung wird nun über CSS-Klasse #app-content gesteuert. -->
+    <div id="app-content">
+        <!-- Event-Karten werden hier vom JS eingefügt -->
+    </div>
+
+    <div id="whatsapp-view" class="static-view" style="display: none;">
         <h2>WhatsApp Community</h2>
-        <p>Tritt unserer Community bei, um um in verschiedenen Gruppen nach Lust und Laune über alles mögliche in unserem Nordleda zu chatten. Und wenn es eine Idee gibt, die unbedingt besprochen werden sollte, dann erstellt ihr selber eine Gruppe.<br>
-			Reinschauen, Mitmachen, Diskutieren, Moderieren.</p>
+        <p>Tritt unserer Community bei, um in verschiedenen Gruppen nach Lust und Laune über alles mögliche in unserem Nordleda zu chatten. Und wenn es eine Idee gibt, die unbedingt besprochen werden sollte, dann erstellt ihr selber eine Gruppe.<br>
+            Reinschauen, Mitmachen, Diskutieren, Moderieren.</p>
         <div style="margin-top: 20px; text-align: center;">
-            <a href="https://chat.whatsapp.com/JYa2h2T2EynJSRo2KApNiE" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
+            <a href="https://chat.whatsapp.com/JYa2h2T2EynJSRo2KApNiE" target="_blank" class="calendar-link-btn" style="background-color: #25D366; color: white;">
                 Community beitreten
             </a>
         </div>
 
         <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
-        
+
         <h2>WhatsApp Kanal für Veranstaltungen</h2>
-        <p>Abonniert  unseren Kanal, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf euer Handy zu erhalten.<br>
-		Dieser Kanal dient nur der Information durch uns.</p>
+        <p>Abonniert unseren Kanal, um aktuelle Neuigkeiten, kurzfristige Informationen und Ankündigungen direkt auf euer Handy zu erhalten.<br>
+            Dieser Kanal dient nur der Information durch uns.</p>
         <div style="margin-top: 20px; text-align: center;">
-            <a href="https://whatsapp.com/channel/0029VbBsgtIK0IBZMmtQJ61J" target="_blank" style="display: inline-block; background-color: #25D366; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-size: 1.2em;">
+            <a href="https://whatsapp.com/channel/0029VbBsgtIK0IBZMmtQJ61J" target="_blank" class="calendar-link-btn" style="background-color: #25D366; color: white;">
                 Kanal abonnieren
             </a>
-			<br>
-			<br>
-			<br>
+            <br><br><br>
         </div>
-        
     </div>
 
-    <div id="contact-view" class="static-view">
-        
+    <div id="contact-view" class="static-view" style="display: none;">
         <h2>Feedback, Anfragen & Support</h2>
         <p>Habet ihr allgemeine Fragen, möchtet ihr eine Veranstaltung melden oder benötigt ihr technischen Support für diese App?</p>
         <p>Bitte nutzt unsere zentrale E-Mail-Adresse.</p>
-        
-        <h3 style="color: #8B4513;">Zentrale Kontaktstelle:</h3>
+
+        <h3 style="color: var(--primary);">Zentrale Kontaktstelle:</h3>
         <div style="margin-top: 20px; margin-bottom: 40px;">
-            E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com">miteinander.netzwerk.nordleda@gmail.com</a>
+            E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com" style="color: var(--primary);">miteinander.netzwerk.nordleda@gmail.com</a>
         </div>
-        
+
         <hr style="margin: 40px 0; border-top: 1px solid #ddd;">
-        
+
         <h2>Impressum</h2>
         <p><strong>Betreiber und Verantwortlich für den Inhalt:</strong></p>
         <p>
             Interessengruppe<br>
-			Miteinander Netzwerk Nordleda<br>
+            Miteinander Netzwerk Nordleda<br>
             c/o Andreas Beckmann<br>
             Kampen 31 - 21765 Nordleda
         </p>
 
-        <h3 style="color: #8B4513; margin-top: 25px;">Verantwortlich im Sinne des Presserechts (V.i.S.d.P.):</h3>
+        <h3 style="color: var(--primary); margin-top: 25px;">Verantwortlich im Sinne des Presserechts (V.i.S.d.P.):</h3>
         <p>
             Andreas Beckmann<br>
             Kampen 31 - 21765 Nordleda
         </p>
 
-        <h3 style="color: #8B4513; margin-top: 25px;">Kontakt:</h3>
+        <h3 style="color: var(--primary); margin-top: 25px;">Kontakt:</h3>
         <p>
-            E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com">miteinander.netzwerk.nordleda@gmail.com</a>
+            E-Mail: <a href="mailto:miteinander.netzwerk.nordleda@gmail.com" style="color: var(--primary);">miteinander.netzwerk.nordleda@gmail.com</a>
         </p>
         <p style="font-size: 0.9em; margin-top: 20px;">
             *Hinweis:* Wir sind bemüht, die Informationen in dieser App aktuell und korrekt zu halten. Da die App ausschließlich zur Bekanntmachung von lokalen Veranstaltungen dient, übernehmen wir keine Haftung für die Richtigkeit der Termine und Inhalte der Veranstalter.
         </p>
-		<br>
-		<br>
-		<br>
+        <br><br><br>
     </div>
-    <div id="eventModal" class="modal">
-    <div class="modal-content">
-        <span class="close" onclick="closeModal('eventModal')">×</span>
-        </div>
-</div>
 
-<div id="veranstalterModal" class="modal">
-    <div class="modal-content" id="veranstalterDetail">
-        <span class="close" onclick="closeModal('veranstalterModal')">×</span>
-        
-        <h3 id="modalProviderName"></h3>
-        <p><strong>Kontakt:</strong> <span id="modalProviderContact"></span></p>
-        <p><strong>Info:</strong> <span id="modalProviderInfo"></span></p>
-        <a id="modalProviderLink" href="#" target="_blank" style="color: #8B4513;">Zur Webseite</a>
+    <!-- Modals -->
+    <div id="eventModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('eventModal')">×</span>
+            <!-- Event Details werden hier vom JS eingefügt -->
         </div>
-</div>
-    
+    </div>
+
+    <div id="veranstalterModal" class="modal">
+        <div class="modal-content" id="veranstalterDetail">
+            <span class="close" onclick="closeModal('veranstalterModal')">×</span>
+
+            <h3 id="modalProviderName" style="color: var(--primary);"></h3>
+            <p><strong>Kontakt:</strong> <span id="modalProviderContact"></span></p>
+            <p><strong>Info:</strong> <span id="modalProviderInfo"></span></p>
+            <a id="modalProviderLink" href="#" target="_blank" style="color: var(--primary); font-weight: 600;">Zur Webseite</a>
+        </div>
+    </div>
+
     <nav id="navigation">
         <button id="events-btn" class="nav-btn active" onclick="switchView('events')">Veranstaltungen</button>
         <button id="providers-btn" class="nav-btn" onclick="switchView('providers')">Anbieter</button>
         <button id="whatsapp-btn" class="nav-btn" onclick="switchView('whatsapp')">WhatsApp</button>
         <button id="contact-btn" class="nav-btn" onclick="switchView('contact')">Kontakt</button>
     </nav>
-	
 </div>
 
-<script src="/mnn-event-app/mnnscript.js"></script>
+<!-- Lade JS direkt aus dem lokalen Pfad ohne /mnn-event-app/ -->
+<script type="module" src="mnnscript.js"></script>
 
 </body>
-
 </html>
