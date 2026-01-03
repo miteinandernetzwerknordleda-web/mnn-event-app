@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v9'; // Version auf v9 erhöht
+const CACHE_NAME = 'mnn-cache-v10'; // Version auf v10 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 
@@ -54,36 +54,34 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
-    // EXTERNE ANFRAGEN (Google Kalender / APIs)
+    // 1. EXTERNE ANFRAGEN (Google)
     if (url.origin !== location.origin) {
         event.respondWith(
-            caches.match(event.request).then(cachedResponse => {
-                // 1. Wenn wir im Cache was haben, gib es sofort zurück (Offline-First für API)
-                // ODER: Wir machen Network-First, aber mit besserem Fehler-Handling
-                return fetch(event.request)
-                    .then(networkResponse => {
-                        // Bei Erfolg: Cache aktualisieren
-                        if (networkResponse.status === 200 || networkResponse.status === 0) {
-                            const responseClone = networkResponse.clone();
-                            caches.open(CACHE_NAME).then(cache => {
-                                cache.put(event.request, responseClone);
-                            });
-                        }
-                        return networkResponse;
-                    })
-                    .catch(() => {
-                        // Wenn Netzwerk fehlschlägt: Gib die Cache-Antwort zurück
-                        return cachedResponse;
-                    });
-            })
+            fetch(event.request)
+                .then(response => {
+                    if (response.status === 200 || response.status === 0) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                    }
+                    return response;
+                })
+                .catch(() => caches.match(event.request))
         );
         return;
     }
 
-    // INTERNE DATEIEN (index.html, Bilder)
+    // 2. INTERNE DATEIEN & NAVIGATION
     event.respondWith(
         caches.match(event.request).then(response => {
-            return response || fetch(event.request);
+            // Wenn die Datei im Cache ist, gib sie zurück
+            if (response) return response;
+
+            // FALLBACK: Wenn offline und eine Seite (Navigation) angefordert wird
+            return fetch(event.request).catch(() => {
+                if (event.request.mode === 'navigate') {
+                    return caches.match(APP_PATH + 'index.html');
+                }
+            });
         })
     );
 });
