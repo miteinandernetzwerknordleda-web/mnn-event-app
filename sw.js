@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v16'; // Version auf v16 erhöht
+const CACHE_NAME = 'mnn-cache-v17'; // Version auf v17 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 

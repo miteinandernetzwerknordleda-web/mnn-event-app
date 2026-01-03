@@ -121,6 +121,9 @@
         position: sticky;
         top: 0;
         z-index: 10;
+		min-height: 60px; /* Garantiert eine Grundhöhe */
+		height: auto;      /* Erlaubt dem Header zu wachsen */
+		padding: 10px 20px;
     }
 
     /* KORRIGIERT: Logo Container und Logo selbst sind jetzt eindeutig definiert */
@@ -149,6 +152,10 @@
         color: white;
         flex-grow: 1; 
         text-align: left; 
+		display: flex;
+		flex-direction: column; /* Stapelt Haupttitel und Sub-Header */
+		justify-content: center;
+		line-height: 1.1;       /* Engerer Zeilenabstand für die zwei Zeilen */
     }
     
     /* Styling für den Refresh Button */
@@ -198,6 +205,15 @@
         border-color: #8B4513; 
         box-shadow: 0 0 0 2px rgba(139, 69, 19, 0.2);
     }
+
+.sub-header {
+    display: block;
+    font-size: 0.55em;      /* Schön klein */
+    font-weight: normal;
+    opacity: 0.9;
+    margin-top: 2px;
+    color: #f4f7f6;         /* Etwas helleres Grau/Weiß für bessere Lesbarkeit auf Braun */
+}
 
 /* --- KATEGORIE-FILTER-STILE (Aktiviert) --- */
 #filter-container {
@@ -524,14 +540,6 @@
     text-decoration: underline;
 }
 
-.sub-header {
-    display: block;       /* Erzeugt den Zeilenumbruch */
-    font-size: 0.6em;     /* Macht die Schrift kleiner */
-    font-weight: normal;  /* Nicht ganz so fett wie die Hauptzeile */
-    opacity: 0.8;         /* Etwas dezenter grau/transparent */
-    margin-top: 4px;      /* Kleiner Abstand nach oben */
-}
-
 </style>
 </head>
 <body>
@@ -544,7 +552,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.016
+		Version 1.3.017
     </div>
 </div>
 
@@ -1187,7 +1195,6 @@ function fetchCalendarEvents() {
 	
 // --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT MONATSTRENNUNG) ---
 function renderEventList(eventsToRender = dynamicEvents) {
-    headerTitle.textContent = "Veranstaltungen";
     contentDiv.innerHTML = '';
     
     // Sortierung der Events nach Datum
