@@ -544,7 +544,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.014
+		Version 1.3.015
     </div>
 </div>
 
@@ -1065,26 +1065,27 @@ function downloadICS(event) {
 
 
 // --- 3. DATENABRUF VON GOOGLE KALENDER ---
-function fetchCalendarEvents() {
+	function fetchCalendarEvents() {
     startTime = Date.now(); 
     
     // 1. localStorage laden
-	const savedEvents = localStorage.getItem('cached_events');
+    const savedEvents = localStorage.getItem('cached_events');
+    let lastUpdateStr = ""; 
+
     if (savedEvents) {
         try {
             const data = JSON.parse(savedEvents);
-            
-            // Prüfen, ob wir das neue Format (mit updatedAt) oder das alte haben
+            // Unterstützt altes und neues Speicherformat
             const eventsToLoad = data.events ? data.events : data; 
-            const lastUpdate = data.updatedAt ? data.updatedAt : "unbekannt";
+            lastUpdateStr = data.updatedAt ? data.updatedAt : "unbekannt";
 
             lastKnownEvents = eventsToLoad.map(ev => ({
                 ...ev,
                 sortDate: new Date(ev.sortDate)
             }));
 
-            // Offline-Anzeige mit Datum vorbereiten
-            headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Offline Stand: ${lastUpdate}</span>`;
+            // Wir setzen die Überschrift NUR hier, wenn wir Daten haben
+            headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Stand: ${lastUpdateStr}</span>`;
             
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
@@ -1095,9 +1096,10 @@ function fetchCalendarEvents() {
                 appLoader.style.display = 'none';
                 applyCategoryFilter(currentFilterId);
             }
-        } catch (e) {
-            console.error("Fehler beim Laden", e);
-        }
+        } catch (e) { console.error("Cache Fehler:", e); }
+    } else {
+        // NUR wenn gar nichts im Cache ist, Standard-Titel setzen
+        headerTitle.textContent = "Veranstaltungen";
     }
     
     const hideSplash = () => {
@@ -1110,7 +1112,8 @@ function fetchCalendarEvents() {
         }, target);
     };
 
-    headerTitle.textContent = "Veranstaltungen";
+    // WICHTIG: Die Zeile headerTitle.textContent = "Veranstaltungen" hier gelöscht!
+    
     if (lastKnownEvents.length === 0) { contentDiv.innerHTML = ''; }
 
     const threeMonthsFromNow = new Date();
@@ -1127,59 +1130,51 @@ function fetchCalendarEvents() {
             return response.json();
         })
         .then(data => {
-            // DEIN ORIGINAL MAPPING-BLOCK (Wiederhergestellt)
             dynamicEvents = data.items.map((item, index) => {
                 const rawTitle = item.summary || '';
-                const providerId = extractProviderId(rawTitle); // Anbieter-Erkennung
-                
+                const providerId = extractProviderId(rawTitle); 
                 const isTimedEvent = !!item.start.dateTime;
                 const eventStart = new Date(item.start.dateTime || item.start.date);
                 
                 let startDate;
                 let endDate = '';
-
                 if (isTimedEvent) {
                     startDate = eventStart.toLocaleDateString('de-DE', {
                         year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
                     }).trim();
-                    
                     const eventEnd = new Date(item.end.dateTime);
-                    endDate = eventEnd.toLocaleTimeString('de-DE', {
-                        hour: '2-digit', minute: '2-digit'
-                    }).trim() + ' Uhr';
+                    endDate = eventEnd.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }).trim() + ' Uhr';
                 } else {
                     const tempDate = new Date(item.start.date);
-                    startDate = tempDate.toLocaleDateString('de-DE', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                    }).trim();
+                    startDate = tempDate.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' }).trim();
                 }
-
-                const dayOfMonth = eventStart.getDate();
-                const dayOfWeekShort = eventStart.toLocaleDateString('de-DE', {
-                    weekday: 'short'
-                }).slice(0, 2);
-                
-                const sortDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
 
                 return {
                     id: index,
-                    title: cleanTitle(rawTitle), // Titel-Bereinigung
+                    title: cleanTitle(rawTitle),
                     date: startDate,
                     endDate: endDate,
-                    dayOfMonth: dayOfMonth,
-                    dayOfWeekShort: dayOfWeekShort,
+                    dayOfMonth: eventStart.getDate(),
+                    dayOfWeekShort: eventStart.toLocaleDateString('de-DE', { weekday: 'short' }).slice(0, 2),
                     location: item.location || 'Keine Angabe',
                     description: item.description || 'Keine weitere Beschreibung vorhanden.',
                     providerId: providerId,
-                    sortDate: sortDate 
+                    sortDate: new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate())
                 };
             }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1);
             
-            // SPEICHERN
-			lastKnownEvents = dynamicEvents; 
-            localStorage.setItem('cached_events', JSON.stringify(dynamicEvents));
+            // SPEICHERN MIT ZEITSTEMPEL
+            lastKnownEvents = dynamicEvents; 
+            const cacheObject = {
+                events: dynamicEvents,
+                updatedAt: new Date().toLocaleString('de-DE', { 
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' 
+                })
+            };
+            localStorage.setItem('cached_events', JSON.stringify(cacheObject));
             
-            // Sicherstellen, dass die Anzeige nur gerendert wird, wenn wir nicht gerade offline-Daten gezeigt haben
+            // ONLINE: Titel wieder sauber ohne "Stand"
+            headerTitle.textContent = "Veranstaltungen";
             appLoader.style.display = 'none';
             createFilterButtons(); 
             filterContainer.style.display = 'block';
@@ -1192,13 +1187,15 @@ function fetchCalendarEvents() {
             hideSplash(); 
             
             if (lastKnownEvents && lastKnownEvents.length > 0) {
-                 headerTitle.textContent = "Veranstaltungen (Offline)";
-                 // Hier rufen wir die Anzeige nochmal explizit auf:
-                 createFilterButtons(); 
-                 filterContainer.style.display = 'block';
-                 applyCategoryFilter(null);
+                // Falls der Titel oben nicht gesetzt wurde (z.B. durch Fehler), hier Fallback
+                if (!headerTitle.innerHTML.includes("Stand:")) {
+                    headerTitle.textContent = "Veranstaltungen (Offline)";
+                }
+                createFilterButtons(); 
+                filterContainer.style.display = 'block';
+                applyCategoryFilter(null);
             } else {
-                 contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Keine Internetverbindung und keine gespeicherten Daten gefunden.</p>`;
+                contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Keine Internetverbindung verfügbar.</p>`;
             }
         });
 }
