@@ -551,8 +551,8 @@
     </h1>
     <p>Lade Events...</p>
     <div id="splash-copyright">
-        (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.019
+        (c) 2026 Miteinander Netzwerk Nordleda<br>
+		Version <span class="app-version-text"></span>
     </div>
 </div>
 
@@ -642,6 +642,9 @@
             *Hinweis:* Wir sind bemüht, die Informationen in dieser App aktuell und korrekt zu halten. Da die App ausschließlich zur Bekanntmachung von lokalen Veranstaltungen dient, übernehmen wir keine Haftung für die Richtigkeit der Termine und Inhalte der Veranstalter.
         </p>
 		<br>
+		<p style="margin-top: 20px; font-size: 0.8em; color: #666;">
+        App Version: <span class="app-version-text"></span>
+    </p>
     </div>
     <div id="eventModal" class="modal">
     <div class="modal-content">
@@ -674,7 +677,8 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-    const MIN_SPLASH_DURATION = 4000; 
+	const APP_VERSION = "1.3.020"; 
+    const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
     const DEFAULT_LOGO_PATH = 'logo.png'; 
@@ -728,6 +732,13 @@
 	let lastKnownEvents = [];
 
     // --- 2. HILFSFUNKTIONEN ---
+	
+	function injectVersionNumber() {
+    const versionFields = document.querySelectorAll('.app-version-text');
+    versionFields.forEach(field => {
+        field.textContent = APP_VERSION;
+    });
+}
 
     function extractProviderId(titleString) {
         if (!titleString) return null;
