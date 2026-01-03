@@ -552,7 +552,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.017
+		Version 1.3.018
     </div>
 </div>
 
@@ -918,58 +918,57 @@ function formatToCalendarDateString(dateObject, isAllDay) {
 }
 
 
-function getGoogleCalendarUrl(event) {
-    const title = encodeURIComponent(event.title);
-    const description = encodeURIComponent(event.description.replace(/\n/g, ' ')); 
-    const location = encodeURIComponent(event.location);
+	function getGoogleCalendarUrl(event) {
+    // 1. Sicherheits-Checks für Texte
+    const title = encodeURIComponent(event.title || 'Veranstaltung');
     
-    let isAllDay = event.endDate === ''; 
+    // Falls Beschreibung fehlt, nutzen wir einen leeren String
+    const rawDesc = event.description || ''; 
+    const description = encodeURIComponent(rawDesc.replace(/\n/g, ' '));
+    
+    const location = encodeURIComponent(event.location || '');
+    
+    // 2. Zeiten bestimmen
+    let isAllDay = !event.endDate || event.endDate === ''; 
     let startMoment = new Date(event.sortDate); 
     let endMoment;
 
-    // 1. Startzeitpunkt bestimmen
+    // Startzeitpunkt parsen
     if (isAllDay) {
-        // All-Day: Start ist Mitternacht
         startMoment.setHours(0, 0, 0, 0); 
     } else {
-        // Timed Event: Zeit aus event.date parsen (z.B. "20:00 Uhr")
-        const timeMatch = event.date.match(/(\d{2}):(\d{2})/);
+        const dateStr = event.date || ""; // Sicherstellen, dass es ein String ist
+        const timeMatch = dateStr.match(/(\d{2}):(\d{2})/);
         if (timeMatch) {
             startMoment.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0, 0);
         }
     }
     
-    // 2. Endzeitpunkt bestimmen
+    // Endzeitpunkt parsen
     if (isAllDay) {
-        // All-Day: Endet am nächsten Tag um Mitternacht (exklusiv)
         endMoment = new Date(startMoment);
         endMoment.setDate(endMoment.getDate() + 1);
     } else {
-        // Timed Event: Endzeit aus event.endDate parsen (z.B. "22:00 Uhr")
         endMoment = new Date(startMoment);
-        const endTimeMatch = event.endDate.match(/(\d{2}):(\d{2})/);
+        const endDateStr = event.endDate || ""; // Sicherstellen, dass es ein String ist
+        const endTimeMatch = endDateStr.match(/(\d{2}):(\d{2})/);
         if (endTimeMatch) {
             endMoment.setHours(parseInt(endTimeMatch[1]), parseInt(endTimeMatch[2]), 0, 0);
-            
-            // Falls Endzeit vor Startzeit liegt (über Mitternacht hinaus):
             if(endMoment.getTime() < startMoment.getTime()) {
                 endMoment.setDate(endMoment.getDate() + 1);
             }
         } else {
-            // Falls Endzeit fehlt: 1 Stunde Dauer
             endMoment.setHours(startMoment.getHours() + 1);
         }
     }
 
-    // 3. Formatierung für URL
+    // 3. Formatierung (nutzt deine bestehende Hilfsfunktion)
     let startFormatted = formatToCalendarDateString(startMoment, isAllDay);
     let endFormatted = formatToCalendarDateString(endMoment, isAllDay);
     
     const datesParam = `${startFormatted}/${endFormatted}`;
 
-    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${datesParam}&details=${description}&location=${location}&sf=true`;
-    
-    return calendarUrl;
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${datesParam}&details=${description}&location=${location}&sf=true`;
 }
 
 function getICSContent(event) {
@@ -1093,7 +1092,7 @@ function fetchCalendarEvents() {
             }));
 
             // OFFLINE-TITEL SETZEN (Wird nur im Erfolgsfall überschrieben)
-            headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Stand: ${lastUpdateStr}</span>`;
+            headerTitle.innerHTML = `OFFLINE <span class="sub-header">Stand: ${lastUpdateStr}</span>`;
             
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
