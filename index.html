@@ -552,7 +552,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.018
+		Version 1.3.019
     </div>
 </div>
 
@@ -1053,17 +1053,134 @@ function getICSContent(event) {
     return icsContent;
 }
 
-function downloadICS(event) {
-    if (!event) return; 
+	function downloadICS(event) {
+    if (!event) {
+        alert("Keine Event-Daten gefunden.");
+        return;
+    }
+
+    // 1. Daten vorbereiten
+    const title = event.title || 'Veranstaltung';
+    const description = (event.description || '').replace(/\n/g, '\\n');
+    const location = event.location || '';
     
-    const icsContent = getICSContent(event);
-    
-    // Erstellt eine temporäre Blob-URL, um den Download auszulösen
+    // 2. Zeitstempel berechnen (nutzt die Logik aus der Google-Funktion)
+    const isAllDay = !event.endDate || event.endDate === '';
+    let startMoment = new Date(event.sortDate);
+    let endMoment = new Date(startMoment);
+
+    if (!isAllDay) {
+        const timeMatch = (event.date || "").match(/(\d{2}):(\d{2})/);
+        if (timeMatch) {
+            startMoment.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0);
+            
+            const endTimeMatch = (event.endDate || "").match(/(\d{2}):(\d{2})/);
+            if (endTimeMatch) {
+                endMoment.setHours(parseInt(endTimeMatch[1]), parseInt(endTimeMatch[2]), 0);
+            } else {
+                endMoment.setHours(startMoment.getHours() + 1);
+            }
+        }
+    } else {
+        // Ganztägig: Ende ist der nächste Tag
+        endMoment.setDate(endMoment.getDate() + 1);
+    }
+
+    // Hilfsfunktion für das ICS-Datumsformat: YYYYMMDDTHHMMSS
+    const formatICS = (date, allDay) => {
+        const iso = date.toISOString().replace(/-|:|\.\d+/g, '');
+        return allDay ? iso.slice(0, 8) : iso;
+    };
+
+    const startStr = formatICS(startMoment, isAllDay);
+    const endStr = formatICS(endMoment, isAllDay);
+
+    // 3. ICS Datei-Inhalt zusammenbauen
+    const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//MNN Event App//DE",
+        "BEGIN:VEVENT",
+        `DTSTART${isAllDay ? ';VALUE=DATE' : ''}:${startStr}`,
+        `DTEND${isAllDay ? ';VALUE=DATE' : ''}:${endStr}`,
+        `SUMMARY:${title}`,
+        `DESCRIPTION:${description}`,
+        `LOCATION:${location}`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+    ].join("\r\n");
+
+    // 4. Download auslösen
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    // Ersetzt alle Nicht-Alphanumerischen Zeichen mit Unterstrich für den Dateinamen
-    link.setAttribute('download', `${event.title.replace(/[^a-z0-9]/gi, '_').substring(0, 50)}.ics`); 
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', `${title.replace(/[^a-z0-9]/gi, '_')}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+function downloadICS(event) {
+    if (!event) {
+        alert("Keine Event-Daten gefunden.");
+        return;
+    }
+
+    // 1. Daten vorbereiten
+    const title = event.title || 'Veranstaltung';
+    const description = (event.description || '').replace(/\n/g, '\\n');
+    const location = event.location || '';
+    
+    // 2. Zeitstempel berechnen (nutzt die Logik aus der Google-Funktion)
+    const isAllDay = !event.endDate || event.endDate === '';
+    let startMoment = new Date(event.sortDate);
+    let endMoment = new Date(startMoment);
+
+    if (!isAllDay) {
+        const timeMatch = (event.date || "").match(/(\d{2}):(\d{2})/);
+        if (timeMatch) {
+            startMoment.setHours(parseInt(timeMatch[1]), parseInt(timeMatch[2]), 0);
+            
+            const endTimeMatch = (event.endDate || "").match(/(\d{2}):(\d{2})/);
+            if (endTimeMatch) {
+                endMoment.setHours(parseInt(endTimeMatch[1]), parseInt(endTimeMatch[2]), 0);
+            } else {
+                endMoment.setHours(startMoment.getHours() + 1);
+            }
+        }
+    } else {
+        // Ganztägig: Ende ist der nächste Tag
+        endMoment.setDate(endMoment.getDate() + 1);
+    }
+
+    // Hilfsfunktion für das ICS-Datumsformat: YYYYMMDDTHHMMSS
+    const formatICS = (date, allDay) => {
+        const iso = date.toISOString().replace(/-|:|\.\d+/g, '');
+        return allDay ? iso.slice(0, 8) : iso;
+    };
+
+    const startStr = formatICS(startMoment, isAllDay);
+    const endStr = formatICS(endMoment, isAllDay);
+
+    // 3. ICS Datei-Inhalt zusammenbauen
+    const icsContent = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//MNN Event App//DE",
+        "BEGIN:VEVENT",
+        `DTSTART${isAllDay ? ';VALUE=DATE' : ''}:${startStr}`,
+        `DTEND${isAllDay ? ';VALUE=DATE' : ''}:${endStr}`,
+        `SUMMARY:${title}`,
+        `DESCRIPTION:${description}`,
+        `LOCATION:${location}`,
+        "END:VEVENT",
+        "END:VCALENDAR"
+    ].join("\r\n");
+
+    // 4. Download auslösen
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', `${title.replace(/[^a-z0-9]/gi, '_')}.ics`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1181,7 +1298,7 @@ function fetchCalendarEvents() {
             if (lastKnownEvents && lastKnownEvents.length > 0) {
                 // Falls aus irgendeinem Grund die Überschrift oben nicht gesetzt wurde:
                 if (!headerTitle.innerHTML.includes("Stand:")) {
-                    headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Stand: ${lastUpdateStr || 'offline'}</span>`;
+                    headerTitle.innerHTML = `OFFLINE <span class="sub-header">Stand: ${lastUpdateStr || 'offline'}</span>`;
                 }
                 createFilterButtons(); 
                 filterContainer.style.display = 'block';
@@ -1394,57 +1511,56 @@ function showEventDetails(event) {
     const providerColor = provider ? provider.color : '#8B4513';
     const safeLinkColor = '#8B4513';
 
-    const imageUrl = getEmbeddableDriveLink(event.description);
-    
-    let cleanedDescription = event.description;
+    // SICHERHEIT: Fallback für Beschreibung, falls null oder undefined
+    const originalDescription = event.description || "";
+
+    const imageUrl = getEmbeddableDriveLink(originalDescription);
+    let cleanedDescription = originalDescription;
     
     const fullLinkRegex = /https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)[a-zA-Z0-9_-]+(?:[^ \n\r]*)/g;
     
-    if (imageUrl) {
-        cleanedDescription = event.description.replace(fullLinkRegex, '').trim();
+    if (imageUrl && originalDescription) {
+        cleanedDescription = originalDescription.replace(fullLinkRegex, '').trim();
     }
     
     const imageHtml = imageUrl
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
         : '';
 
-    // NEU: Zeit-Anzeige korrigiert (Timed vs. All-Day)
+    // Zeit-Anzeige (Timed vs. All-Day)
     let timeDisplay;
     if (event.endDate) {
-        // Timed Event: event.date enthält Startdatum/zeit, event.endDate enthält Endzeit
-        const startDatePart = event.date.split(',')[0]; // z.B. "21. November 2025"
-        const startTimePart = event.date.match(/(\d{2}:\d{2})/)?.[0] || '';
+        const startDatePart = (event.date || "").split(',')[0]; 
+        const startTimePart = (event.date || "").match(/(\d{2}:\d{2})/)?.[0] || '';
         
         if(startTimePart) {
-            // Angabe mit Start- und Endzeit
             timeDisplay = `Am ${startDatePart} von ${startTimePart} bis ${event.endDate}`;
         } else {
-            // Falls Startzeit fehlt, nur Datum und Endzeit
-            timeDisplay = `${event.date} bis ${event.endDate}`;
+            timeDisplay = `${event.date || ""} bis ${event.endDate}`;
         }
     } else {
-        timeDisplay = `${event.date} (Ganztägig)`;
+        timeDisplay = `${event.date || ""} (Ganztägig)`;
     }
         
-    const locationEncoded = encodeURIComponent(event.location);
-    
-    // Korrigierte Google Maps URL
-    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=$${locationEncoded}`; 
-    const locationLink = `<a href="https://maps.google.com/?q=$${locationEncoded}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location} (Auf Karte anzeigen)</a>`;
+    const locationEncoded = encodeURIComponent(event.location || "");
+    const locationLink = `<a href="https://www.google.com/maps/search/?api=1&query=${locationEncoded}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location || "Keine Ortsangabe"} (Auf Karte anzeigen)</a>`;
 
-    // NEU: Kalender-URL generieren
     const googleCalendarUrl = getGoogleCalendarUrl(event); 
 
     const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
+    // Alte Inhalte entfernen (außer Schließen-Button)
     Array.from(modalContent.children).forEach(child => {
         if (!child.classList.contains('close')) {
             child.remove();
         }
     });
 
+    // SICHERHEIT: Falls Beschreibung nach dem Reinigen leer ist
+    const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
+
     const detailsHTML = `
-        <h2 style="color: #8B4513;">${event.title}</h2>
+        <h2 style="color: #8B4513;">${event.title || "Ohne Titel"}</h2>
         ${imageHtml}
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
@@ -1457,7 +1573,7 @@ function showEventDetails(event) {
             </strong>
         </p>
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
-        <p>${cleanedDescription.replace(/\n/g, '<br>')}</p>
+        <p>${finalDescription.replace(/\n/g, '<br>')}</p>
         
         <div class="calendar-buttons">
             <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
@@ -1469,13 +1585,10 @@ function showEventDetails(event) {
         </div>
         `;
     
-    // Event im Cache speichern, um es im ICS-Download verwenden zu können
     window.eventDetailsCache = event;
-    
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
     eventModal.style.display = "block";
 }
-
 
     function showVeranstalterDetails(providerId) {
         closeModal('eventModal'); 
