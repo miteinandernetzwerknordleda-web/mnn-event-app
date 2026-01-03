@@ -6,7 +6,6 @@ const urlsToCache = [
     APP_PATH,
     APP_PATH + 'index.html',
     APP_PATH + 'manifest.json',
-    APP_PATH + 'sw.js',
     APP_PATH + 'icons/icon-192x192.png',
     APP_PATH + 'icons/icon-512x512.png',
     APP_PATH + 'logo.png',
