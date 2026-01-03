@@ -524,6 +524,14 @@
     text-decoration: underline;
 }
 
+.sub-header {
+    display: block;       /* Erzeugt den Zeilenumbruch */
+    font-size: 0.6em;     /* Macht die Schrift kleiner */
+    font-weight: normal;  /* Nicht ganz so fett wie die Hauptzeile */
+    opacity: 0.8;         /* Etwas dezenter grau/transparent */
+    margin-top: 4px;      /* Kleiner Abstand nach oben */
+}
+
 </style>
 </head>
 <body>
@@ -536,7 +544,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.013
+		Version 1.3.014
     </div>
 </div>
 
@@ -1061,18 +1069,22 @@ function fetchCalendarEvents() {
     startTime = Date.now(); 
     
     // 1. localStorage laden
-const savedEvents = localStorage.getItem('cached_events');
+	const savedEvents = localStorage.getItem('cached_events');
     if (savedEvents) {
         try {
-            const rawData = JSON.parse(savedEvents);
+            const data = JSON.parse(savedEvents);
             
-            // WICHTIG: Die sortDate-Strings wieder in echte Date-Objekte umwandeln
-            lastKnownEvents = rawData.map(ev => ({
+            // Prüfen, ob wir das neue Format (mit updatedAt) oder das alte haben
+            const eventsToLoad = data.events ? data.events : data; 
+            const lastUpdate = data.updatedAt ? data.updatedAt : "unbekannt";
+
+            lastKnownEvents = eventsToLoad.map(ev => ({
                 ...ev,
-                sortDate: new Date(ev.sortDate) // Hier passiert die Wiederbelebung
+                sortDate: new Date(ev.sortDate)
             }));
 
-            console.log("Events aus localStorage geladen und konvertiert.");
+            // Offline-Anzeige mit Datum vorbereiten
+            headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Offline Stand: ${lastUpdate}</span>`;
             
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', () => {
@@ -1084,7 +1096,7 @@ const savedEvents = localStorage.getItem('cached_events');
                 applyCategoryFilter(currentFilterId);
             }
         } catch (e) {
-            console.error("Fehler beim Laden aus dem Speicher:", e);
+            console.error("Fehler beim Laden", e);
         }
     }
     
