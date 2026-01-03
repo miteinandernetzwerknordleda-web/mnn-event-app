@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v7'; // Version auf v7 erhöht
+const CACHE_NAME = 'mnn-cache-v8'; // Version auf v8 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 
@@ -56,28 +56,33 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
 
-    // PRÜFUNG: Ist es eine externe Anfrage? (z.B. Google Kalender)
-    // Wenn die URL NICHT deine Domain ist, nutzen wir Network-First
+    // EXTERNE ANFRAGEN (Google Kalender / APIs)
     if (url.origin !== location.origin) {
         event.respondWith(
-            fetch(event.request)
-                .then(response => {
-                    if (response.status === 200 || response.status === 0) { // status 0 für "opaque" Antworten
-                        const responseClone = response.clone();
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, responseClone);
-                        });
-                    }
-                    return response;
-                })
-                .catch(() => {
-                    return caches.match(event.request);
-                })
+            caches.match(event.request).then(cachedResponse => {
+                // 1. Wenn wir im Cache was haben, gib es sofort zurück (Offline-First für API)
+                // ODER: Wir machen Network-First, aber mit besserem Fehler-Handling
+                return fetch(event.request)
+                    .then(networkResponse => {
+                        // Bei Erfolg: Cache aktualisieren
+                        if (networkResponse.status === 200 || networkResponse.status === 0) {
+                            const responseClone = networkResponse.clone();
+                            caches.open(CACHE_NAME).then(cache => {
+                                cache.put(event.request, responseClone);
+                            });
+                        }
+                        return networkResponse;
+                    })
+                    .catch(() => {
+                        // Wenn Netzwerk fehlschlägt: Gib die Cache-Antwort zurück
+                        return cachedResponse;
+                    });
+            })
         );
         return;
     }
 
-    // Standard-Logik für deine internen Dateien (index.html, Bilder etc.)
+    // INTERNE DATEIEN (index.html, Bilder)
     event.respondWith(
         caches.match(event.request).then(response => {
             return response || fetch(event.request);
