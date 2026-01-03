@@ -677,7 +677,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.020"; 
+	const APP_VERSION = "1.3.021"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -733,13 +733,6 @@
 
     // --- 2. HILFSFUNKTIONEN ---
 	
-	function injectVersionNumber() {
-    const versionFields = document.querySelectorAll('.app-version-text');
-    versionFields.forEach(field => {
-        field.textContent = APP_VERSION;
-    });
-}
-
     function extractProviderId(titleString) {
         if (!titleString) return null;
         const match = titleString.trim().match(/\(ID:(\d+)\)/i);
@@ -1197,6 +1190,15 @@ function downloadICS(event) {
     document.body.removeChild(link);
 }
 // ENDE HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
+
+// Diese Funktion füllt die Nummern überall ein
+	function injectVersionNumber() {
+    const versionFields = document.querySelectorAll('.app-version-text');
+    console.log("Gefundene Versions-Felder:", versionFields.length); // Test für die Konsole
+    versionFields.forEach(field => {
+        field.textContent = APP_VERSION;
+    });
+}
 
 
 // --- 3. DATENABRUF VON GOOGLE KALENDER ---
@@ -1714,6 +1716,7 @@ window.onload = () => {
         // ENDE FEIERTAGS-LOGIK
 
         fetchCalendarEvents();
+		injectVersionNumber();
         
         // Füge alle Nav-Button-Klicks hinzu
         document.getElementById('events-btn').onclick = () => switchView('events');
