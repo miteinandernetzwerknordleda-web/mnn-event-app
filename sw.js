@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v4'; // NEUE VERSION!
+const CACHE_NAME = 'mnn-cache-v5'; // NEUE VERSION!
 
 const APP_PATH = '/mnn-event-app/';
 
@@ -41,43 +41,36 @@ self.addEventListener('install', event => {
 
 // Abfangen von Anfragen und Laden aus dem Cache (Network-first Strategie für APIs)
 self.addEventListener('fetch', event => {
+    // Spezial-Logik für Google API (Events)
+    if (event.request.url.includes('googleapis.com')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Wenn erfolgreich: Antwort klonen und im Cache speichern
+                    if (response.status === 200) {
+                        let responseClone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    // Wenn Netzwerk fehlschlägt: Im Cache nachschauen
+                    return caches.match(event.request);
+                })
+        );
+        return; // Wichtig, damit die allgemeine Logik unten nicht auch noch greift
+    }
+
+    // Standard-Logik für alle anderen Dateien (Bilder, HTML, CSS)
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Cache Hit - liefere Cache-Antwort
                 if (response) {
-                    return response;
+                    return response; // Aus dem Cache laden
                 }
-                
-                // Kein Cache Hit - gehe ins Netzwerk
-                return fetch(event.request).then(
-                    response => {
-                        // Wenn es eine API-Anfrage (Google Calendar) ist, cachen wir die Antwort NICHT.
-                        if (event.request.url.includes('googleapis.com')) {
-                            return response;
-                        }
-
-                        // Bei allen anderen (eigenen) Ressourcen: Klonen der Antwort, um sie im Cache zu speichern
-                        const responseToCache = response.clone();
-
-                        caches.open(CACHE_NAME)
-                            .then(cache => {
-                                // Speichern der neuen Ressource im Cache
-                                // Wir cachen nur GET-Anfragen (Standard) und erfolgreiche Antworten (Status 200)
-                                if (responseToCache.status === 200 && event.request.method === 'GET') {
-                                    cache.put(event.request, responseToCache);
-                                }
-                            });
-
-                        return response;
-                    }
-                );
-            })
-            // Fallback für den Fall, dass fetch() fehlschlägt (z.B. keine Internetverbindung)
-            .catch(() => {
-                 // Hier könnte eine Offline-Fallback-Seite geliefert werden,
-                 // aber da wir index.html im Cache haben, wird die App einfach mit Cache-Daten gestartet.
-                 return caches.match('/index.html'); 
+                return fetch(event.request); // Vom Netzwerk laden
             })
     );
 });
