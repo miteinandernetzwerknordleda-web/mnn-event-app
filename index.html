@@ -544,7 +544,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.015
+		Version 1.3.016
     </div>
 </div>
 
@@ -1065,7 +1065,7 @@ function downloadICS(event) {
 
 
 // --- 3. DATENABRUF VON GOOGLE KALENDER ---
-	function fetchCalendarEvents() {
+function fetchCalendarEvents() {
     startTime = Date.now(); 
     
     // 1. localStorage laden
@@ -1075,16 +1075,16 @@ function downloadICS(event) {
     if (savedEvents) {
         try {
             const data = JSON.parse(savedEvents);
-            // Unterstützt altes und neues Speicherformat
-            const eventsToLoad = data.events ? data.events : data; 
-            lastUpdateStr = data.updatedAt ? data.updatedAt : "unbekannt";
+            // Wir prüfen, ob es das neue Objekt-Format ist oder nur ein Array
+            const eventsToLoad = Array.isArray(data) ? data : (data.events || []); 
+            lastUpdateStr = data.updatedAt || "unbekannt";
 
             lastKnownEvents = eventsToLoad.map(ev => ({
                 ...ev,
                 sortDate: new Date(ev.sortDate)
             }));
 
-            // Wir setzen die Überschrift NUR hier, wenn wir Daten haben
+            // OFFLINE-TITEL SETZEN (Wird nur im Erfolgsfall überschrieben)
             headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Stand: ${lastUpdateStr}</span>`;
             
             if (document.readyState === 'loading') {
@@ -1098,22 +1098,22 @@ function downloadICS(event) {
             }
         } catch (e) { console.error("Cache Fehler:", e); }
     } else {
-        // NUR wenn gar nichts im Cache ist, Standard-Titel setzen
+        // Nur wenn gar kein Cache existiert
         headerTitle.textContent = "Veranstaltungen";
     }
     
     const hideSplash = () => {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = MIN_SPLASH_DURATION - elapsedTime;
-        const target = remainingTime > 0 ? remainingTime : 0;
+        const target = Math.max(0, remainingTime);
         setTimeout(() => {
             splashScreen.classList.add('fade-out');
             setTimeout(() => { splashScreen.style.display = 'none'; }, 1000);
         }, target);
     };
 
-    // WICHTIG: Die Zeile headerTitle.textContent = "Veranstaltungen" hier gelöscht!
-    
+    // WICHTIG: Hier darf KEIN headerTitle.textContent mehr stehen!
+
     if (lastKnownEvents.length === 0) { contentDiv.innerHTML = ''; }
 
     const threeMonthsFromNow = new Date();
@@ -1130,40 +1130,24 @@ function downloadICS(event) {
             return response.json();
         })
         .then(data => {
+            // ... (Dein Mapping-Block bleibt gleich wie zuvor) ...
             dynamicEvents = data.items.map((item, index) => {
                 const rawTitle = item.summary || '';
-                const providerId = extractProviderId(rawTitle); 
-                const isTimedEvent = !!item.start.dateTime;
                 const eventStart = new Date(item.start.dateTime || item.start.date);
-                
-                let startDate;
-                let endDate = '';
-                if (isTimedEvent) {
-                    startDate = eventStart.toLocaleDateString('de-DE', {
-                        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                    }).trim();
-                    const eventEnd = new Date(item.end.dateTime);
-                    endDate = eventEnd.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }).trim() + ' Uhr';
-                } else {
-                    const tempDate = new Date(item.start.date);
-                    startDate = tempDate.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric' }).trim();
-                }
-
                 return {
                     id: index,
                     title: cleanTitle(rawTitle),
-                    date: startDate,
-                    endDate: endDate,
+                    date: eventStart.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
                     dayOfMonth: eventStart.getDate(),
                     dayOfWeekShort: eventStart.toLocaleDateString('de-DE', { weekday: 'short' }).slice(0, 2),
                     location: item.location || 'Keine Angabe',
                     description: item.description || 'Keine weitere Beschreibung vorhanden.',
-                    providerId: providerId,
+                    providerId: extractProviderId(rawTitle),
                     sortDate: new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate())
                 };
             }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1);
             
-            // SPEICHERN MIT ZEITSTEMPEL
+            // NEUES SPEICHERFORMAT
             lastKnownEvents = dynamicEvents; 
             const cacheObject = {
                 events: dynamicEvents,
@@ -1173,8 +1157,9 @@ function downloadICS(event) {
             };
             localStorage.setItem('cached_events', JSON.stringify(cacheObject));
             
-            // ONLINE: Titel wieder sauber ohne "Stand"
+            // ERST HIER: Online-Titel setzen (entfernt den Offline-Zusatz)
             headerTitle.textContent = "Veranstaltungen";
+            
             appLoader.style.display = 'none';
             createFilterButtons(); 
             filterContainer.style.display = 'block';
@@ -1182,20 +1167,20 @@ function downloadICS(event) {
             hideSplash(); 
         })
         .catch(error => {
-            console.warn("Offline-Modus aktiv");
+            console.warn("Nutze Offline-Daten");
             appLoader.style.display = 'none';
             hideSplash(); 
             
             if (lastKnownEvents && lastKnownEvents.length > 0) {
-                // Falls der Titel oben nicht gesetzt wurde (z.B. durch Fehler), hier Fallback
+                // Falls aus irgendeinem Grund die Überschrift oben nicht gesetzt wurde:
                 if (!headerTitle.innerHTML.includes("Stand:")) {
-                    headerTitle.textContent = "Veranstaltungen (Offline)";
+                    headerTitle.innerHTML = `Veranstaltungen <span class="sub-header">Stand: ${lastUpdateStr || 'offline'}</span>`;
                 }
                 createFilterButtons(); 
                 filterContainer.style.display = 'block';
                 applyCategoryFilter(null);
             } else {
-                contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Keine Internetverbindung verfügbar.</p>`;
+                contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Offline: Keine Daten gespeichert.</p>`;
             }
         });
 }
