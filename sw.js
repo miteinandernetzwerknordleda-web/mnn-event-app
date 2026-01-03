@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v6'; // Version auf v6 erhöht
+const CACHE_NAME = 'mnn-cache-v7'; // Version auf v7 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 
@@ -52,15 +52,17 @@ self.addEventListener('activate', event => {
     );
 });
 
-// 3. Fetch-Strategie: Network-First für API, Cache-First für Dateien
+// 3. Fetch-Strategie
 self.addEventListener('fetch', event => {
-    // Spezial-Logik für Google API (Events)
-    if (event.request.url.includes('googleapis.com')) {
+    const url = new URL(event.request.url);
+
+    // PRÜFUNG: Ist es eine externe Anfrage? (z.B. Google Kalender)
+    // Wenn die URL NICHT deine Domain ist, nutzen wir Network-First
+    if (url.origin !== location.origin) {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    // Wenn Netzwerk ok: Kopie in den Cache
-                    if (response.status === 200) {
+                    if (response.status === 200 || response.status === 0) { // status 0 für "opaque" Antworten
                         const responseClone = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseClone);
@@ -69,22 +71,16 @@ self.addEventListener('fetch', event => {
                     return response;
                 })
                 .catch(() => {
-                    // Wenn offline: Schau im Cache nach
                     return caches.match(event.request);
                 })
         );
-        return; 
+        return;
     }
 
-    // Standard-Logik für statische Dateien (index, css, bilder)
+    // Standard-Logik für deine internen Dateien (index.html, Bilder etc.)
     event.respondWith(
         caches.match(event.request).then(response => {
-            return response || fetch(event.request).catch(() => {
-                // Falls alles fehlschlägt (z.B. Offline-Start ohne Cache-Treffer)
-                if (event.request.mode === 'navigate') {
-                    return caches.match(APP_PATH + 'index.html');
-                }
-            });
+            return response || fetch(event.request);
         })
     );
 });
