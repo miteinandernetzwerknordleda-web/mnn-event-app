@@ -285,6 +285,12 @@
         color: #000000;
     }
     
+	/* Styling für die abgesagte Karte */
+	.card-cancelled {
+		background-color: #f9f9f9 !important;
+		opacity: 0.8;
+	}
+	
     /* NEUER STIL FÜR MONATSTRENNUNG */
     .month-separator {
         background-color: #e8e8e8; /* Hintergrundfarbe des Trenners */
@@ -642,9 +648,12 @@
             *Hinweis:* Wir sind bemüht, die Informationen in dieser App aktuell und korrekt zu halten. Da die App ausschließlich zur Bekanntmachung von lokalen Veranstaltungen dient, übernehmen wir keine Haftung für die Richtigkeit der Termine und Inhalte der Veranstalter.
         </p>
 		<br>
-		<p style="margin-top: 20px; font-size: 0.8em; color: #666;">
+		<p style="margin-top: 20px; font-size: 1em; color: #666;">
         App Version: <span class="app-version-text"></span>
     </p>
+	<br>
+	<br>
+	<br>
     </div>
     <div id="eventModal" class="modal">
     <div class="modal-content">
@@ -677,7 +686,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.021"; 
+	const APP_VERSION = "1.3.022"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1323,10 +1332,9 @@ function fetchCalendarEvents() {
 }
 	
 // --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT MONATSTRENNUNG) ---
-function renderEventList(eventsToRender = dynamicEvents) {
+	function renderEventList(eventsToRender = dynamicEvents) {
     contentDiv.innerHTML = '';
     
-    // Sortierung der Events nach Datum
     eventsToRender.sort((a, b) => a.sortDate - b.sortDate);
 
     if (eventsToRender.length === 0) {
@@ -1342,10 +1350,13 @@ function renderEventList(eventsToRender = dynamicEvents) {
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
         const cardColor = provider ? provider.color : '#aaaaaa';
         
-        // Monat und Jahr formatieren
+        // --- NEU: ABSAGE-PRÜFUNG ---
+        const titleUpper = (event.title || "").toUpperCase();
+        const isCancelled = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
+        // ---------------------------
+
         const monthAndYear = dateFormatter.format(event.sortDate);
         
-        // PRÜFUNG AUF MONATSWECHSEL
         if (monthAndYear !== currentMonth) {
             currentMonth = monthAndYear;
             const separator = document.createElement('div');
@@ -1355,20 +1366,26 @@ function renderEventList(eventsToRender = dynamicEvents) {
         }
 
         const card = document.createElement('div');
-        card.className = 'card';
-        card.style.borderLeftColor = cardColor;
-        card.style.setProperty('--event-color', cardColor);
+        // Falls abgesagt, fügen wir die Klasse 'card-cancelled' hinzu
+        card.className = `card ${isCancelled ? 'card-cancelled' : ''}`;
+        
+        // Bei Absage färben wir den Balken rot statt in Provider-Farbe
+        card.style.borderLeftColor = isCancelled ? '#d93025' : cardColor;
+        card.style.setProperty('--event-color', isCancelled ? '#d93025' : cardColor);
         
         card.style.display = 'flex';
         card.style.alignItems = 'flex-start'; 
         
         card.innerHTML = `
-            <div class="date-container">
+            <div class="date-container" style="${isCancelled ? 'opacity: 0.5;' : ''}">
                 <div class="date-day-num">${event.dayOfMonth}</div>
                 <div class="date-day-short">${event.dayOfWeekShort}</div>
             </div>
             <div class="card-content">
-                <h3>${event.title}</h3>
+                <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888;' : ''}">
+                    ${isCancelled ? '<span style="color: #d93025; text-decoration: none; display: block; font-size: 0.8em;">FÄLLT AUS:</span>' : ''}
+                    ${event.title}
+                </h3>
                 <p>Datum: ${event.date}</p>
                 <p>Anbieter: <strong>${providerName}</strong></p>
             </div>
