@@ -1,19 +1,16 @@
-const CACHE_NAME = 'mnn-cache-v5'; // NEUE VERSION!
+const CACHE_NAME = 'mnn-cache-v6'; // Version auf v6 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 
 const urlsToCache = [
     APP_PATH,
     APP_PATH + 'index.html',
-    // PWA-Dateien
     APP_PATH + 'manifest.json',
     APP_PATH + 'sw.js',
-    // Icons
     APP_PATH + 'icons/icon-192x192.png',
     APP_PATH + 'icons/icon-512x512.png',
-    // ALLE Logodateien für den Splash-Screen
-    APP_PATH + 'logo.png', // Standard
-	APP_PATH + 'Splashlogo.png',
+    APP_PATH + 'logo.png',
+    APP_PATH + 'Splashlogo.png',
     APP_PATH + 'mnnsplashadv1.jpg',
     APP_PATH + 'mnnsplashadv2.jpg',
     APP_PATH + 'mnnsplashadv3.jpg',
@@ -25,30 +22,46 @@ const urlsToCache = [
     APP_PATH + 'mnnsplashdeutsch.jpg'
 ];
 
-// Installation: Cache alle Ressourcen
+// 1. Installation: Neuen Service Worker sofort erzwingen
 self.addEventListener('install', event => {
+    self.skipWaiting(); // Erzwingt, dass der neue SW sofort aktiv wird
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(cache => {
-                console.log('Opened cache');
-                // Fügt alle Dateien dem Cache hinzu
-                return cache.addAll(urlsToCache).catch(error => {
-                    console.error('Caching failed:', error);
-                });
-            })
+        caches.open(CACHE_NAME).then(cache => {
+            console.log('Cache geöffnet, Dateien werden geladen...');
+            return cache.addAll(urlsToCache);
+        })
     );
 });
 
-// Abfangen von Anfragen und Laden aus dem Cache (Network-first Strategie für APIs)
+// 2. Aktivierung: Alte Caches löschen und Kontrolle sofort übernehmen
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        Promise.all([
+            clients.claim(), // Übernimmt sofort die Kontrolle über alle offenen Tabs
+            caches.keys().then(cacheNames => {
+                return Promise.all(
+                    cacheNames.map(cacheName => {
+                        if (cacheName !== CACHE_NAME) {
+                            console.log('Lösche alten Cache:', cacheName);
+                            return caches.delete(cacheName);
+                        }
+                    })
+                );
+            })
+        ])
+    );
+});
+
+// 3. Fetch-Strategie: Network-First für API, Cache-First für Dateien
 self.addEventListener('fetch', event => {
     // Spezial-Logik für Google API (Events)
     if (event.request.url.includes('googleapis.com')) {
         event.respondWith(
             fetch(event.request)
                 .then(response => {
-                    // Wenn erfolgreich: Antwort klonen und im Cache speichern
+                    // Wenn Netzwerk ok: Kopie in den Cache
                     if (response.status === 200) {
-                        let responseClone = response.clone();
+                        const responseClone = response.clone();
                         caches.open(CACHE_NAME).then(cache => {
                             cache.put(event.request, responseClone);
                         });
@@ -56,37 +69,22 @@ self.addEventListener('fetch', event => {
                     return response;
                 })
                 .catch(() => {
-                    // Wenn Netzwerk fehlschlägt: Im Cache nachschauen
+                    // Wenn offline: Schau im Cache nach
                     return caches.match(event.request);
                 })
         );
-        return; // Wichtig, damit die allgemeine Logik unten nicht auch noch greift
+        return; 
     }
 
-    // Standard-Logik für alle anderen Dateien (Bilder, HTML, CSS)
+    // Standard-Logik für statische Dateien (index, css, bilder)
     event.respondWith(
-        caches.match(event.request)
-            .then(response => {
-                if (response) {
-                    return response; // Aus dem Cache laden
+        caches.match(event.request).then(response => {
+            return response || fetch(event.request).catch(() => {
+                // Falls alles fehlschlägt (z.B. Offline-Start ohne Cache-Treffer)
+                if (event.request.mode === 'navigate') {
+                    return caches.match(APP_PATH + 'index.html');
                 }
-                return fetch(event.request); // Vom Netzwerk laden
-            })
-    );
-});
-
-// Aktivierung: Alte Caches löschen
-self.addEventListener('activate', event => {
-    const cacheWhitelist = [CACHE_NAME];
-    event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
-                cacheNames.map(cacheName => {
-                    if (cacheWhitelist.indexOf(cacheName) === -1) {
-                        return caches.delete(cacheName);
-                    }
-                })
-            );
+            });
         })
     );
 });
