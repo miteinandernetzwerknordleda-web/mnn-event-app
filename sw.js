@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v8'; // Version auf v8 erhöht
+const CACHE_NAME = 'mnn-cache-v9'; // Version auf v9 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 
@@ -36,19 +36,17 @@ self.addEventListener('install', event => {
 // 2. Aktivierung: Alte Caches löschen und Kontrolle sofort übernehmen
 self.addEventListener('activate', event => {
     event.waitUntil(
-        Promise.all([
-            clients.claim(), // Übernimmt sofort die Kontrolle über alle offenen Tabs
-            caches.keys().then(cacheNames => {
-                return Promise.all(
-                    cacheNames.map(cacheName => {
-                        if (cacheName !== CACHE_NAME) {
-                            console.log('Lösche alten Cache:', cacheName);
-                            return caches.delete(cacheName);
-                        }
-                    })
-                );
-            })
-        ])
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cacheName => {
+                    // Lösche JEDEN Cache, der nicht exakt mnn-cache-vAKTUELL heißt
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Lösche alten Cache:', cacheName);
+                        return caches.delete(cacheName);
+                    }
+                })
+            );
+        }).then(() => self.clients.claim()) // Übernimmt sofort die Kontrolle
     );
 });
 
