@@ -686,7 +686,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.022"; 
+	const APP_VERSION = "1.3.023"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -750,7 +750,11 @@
     
     function cleanTitle(titleString) {
         if (!titleString) return 'Unbekanntes Event';
-        return titleString.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
+        return titleString
+		.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
+		.replace(/ABGESAGT[:]?/i, '')     // Entfernt "ABGESAGT"
+        .replace(/FÄLLT AUS[:]?/i, '')    // Entfernt "FÄLLT AUS"
+        .trim();                          // Putzt die Leerzeichen weg
     }
     
     function getEmbeddableDriveLink(description) {
@@ -1375,16 +1379,19 @@ function fetchCalendarEvents() {
         
         card.style.display = 'flex';
         card.style.alignItems = 'flex-start'; 
+		
+		// Den Titel für die Anzeige putzen
+		const displayTitle = cleanTitle(event.title);
         
-        card.innerHTML = `
+		card.innerHTML = `
             <div class="date-container" style="${isCancelled ? 'opacity: 0.5;' : ''}">
                 <div class="date-day-num">${event.dayOfMonth}</div>
                 <div class="date-day-short">${event.dayOfWeekShort}</div>
             </div>
             <div class="card-content">
-                <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888;' : ''}">
-                    ${isCancelled ? '<span style="color: #d93025; text-decoration: none; display: block; font-size: 0.8em;">FÄLLT AUS:</span>' : ''}
-                    ${event.title}
+                ${isCancelled ? '<strong style="color: #d93025; font-size: 0.85em; display: block; margin-bottom: 2px;">⚠️ FÄLLT AUS:</strong>' : ''}
+                <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888; margin-top: 0;' : ''}">
+                    ${displayTitle}
                 </h3>
                 <p>Datum: ${event.date}</p>
                 <p>Anbieter: <strong>${providerName}</strong></p>
@@ -1588,10 +1595,24 @@ function showEventDetails(event) {
 
     // SICHERHEIT: Falls Beschreibung nach dem Reinigen leer ist
     const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
+	
+	
+	// Den Titel für die Anzeige putzen
+	const displayTitle = cleanTitle(event.title);
 
-    const detailsHTML = `
-        <h2 style="color: #8B4513;">${event.title || "Ohne Titel"}</h2>
+
+	const detailsHTML = `
+        ${isCancelled ? `
+            <div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                ⚠️ DIESER TERMIN FÄLLT AUS!
+            </div>` : ''}
+
+        <h2 style="color: #8B4513; ${isCancelled ? 'text-decoration: line-through; opacity: 0.6;' : ''}">
+            ${displayTitle || "Ohne Titel"}
+        </h2>
+        
         ${imageHtml}
+        
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
         
@@ -1602,18 +1623,25 @@ function showEventDetails(event) {
                 ${providerName} (Details anzeigen)
             </strong>
         </p>
+
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
         <p>${finalDescription.replace(/\n/g, '<br>')}</p>
         
-        <div class="calendar-buttons">
-            <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
-                Zu Google Kalender hinzufügen
-            </a>
-            <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
-                Als .ics-Datei herunterladen (Outlook, Apple)
-            </button>
-        </div>
-        `;
+        ${!isCancelled ? `
+            <div class="calendar-buttons" style="margin-top: 25px;">
+                <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
+                    Zu Google Kalender hinzufügen
+                </a>
+                <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
+                    Als .ics-Datei herunterladen (Outlook, Apple)
+                </button>
+            </div>
+        ` : `
+            <div style="margin-top: 25px; padding: 15px; background: #f0f0f0; border-radius: 8px; text-align: center; color: #666; font-style: italic;">
+                Kalender-Export für abgesagte Termine deaktiviert.
+            </div>
+        `}
+    `;
     
     window.eventDetailsCache = event;
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
