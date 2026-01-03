@@ -748,14 +748,18 @@
         return match ? parseInt(match[1]) : null;
     }
     
-    function cleanTitle(titleString) {
-        if (!titleString) return 'Unbekanntes Event';
-        return titleString
-		.replace(/\s*\(ID:\d+\)\s*/i, '').trim();
-		.replace(/ABGESAGT[:]?/i, '')     // Entfernt "ABGESAGT"
-        .replace(/FÄLLT AUS[:]?/i, '')    // Entfernt "FÄLLT AUS"
-        .trim();                          // Putzt die Leerzeichen weg
-    }
+function cleanTitle(titleString) {
+    if (!titleString) return 'Unbekanntes Event';
+    
+    // Wir nehmen den Titel und wenden die Filter nacheinander an
+    let cleaned = titleString;
+    
+    cleaned = cleaned.replace(/\s*\(ID:\d+\)\s*/i, ''); // ID entfernen
+    cleaned = cleaned.replace(/ABGESAGT[:]?/i, '');     // ABGESAGT entfernen
+    cleaned = cleaned.replace(/FÄLLT AUS[:]?/i, '');    // FÄLLT AUS entfernen
+    
+    return cleaned.trim(); // Am Ende Leerzeichen stutzen
+}
     
     function getEmbeddableDriveLink(description) {
         if (!description) return null;
