@@ -536,7 +536,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.011
+		Version 1.3.012
     </div>
 </div>
 
@@ -1060,13 +1060,23 @@ function downloadICS(event) {
 function fetchCalendarEvents() {
     startTime = Date.now(); 
     
-    // 1. SOFORT-CHECK: localStorage für blitzschnelle Anzeige
+    // 1. localStorage laden
     const savedEvents = localStorage.getItem('cached_events');
     if (savedEvents) {
         try {
             lastKnownEvents = JSON.parse(savedEvents);
-            applyCategoryFilter(currentFilterId);
-            appLoader.style.display = 'none';
+            console.log("Events im Speicher gefunden:", lastKnownEvents.length);
+            
+            // WICHTIG: Kurz warten, bis das DOM bereit ist
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    applyCategoryFilter(currentFilterId);
+                    appLoader.style.display = 'none';
+                });
+            } else {
+                applyCategoryFilter(currentFilterId);
+                appLoader.style.display = 'none';
+            }
         } catch (e) {
             console.error("Fehler beim Parsen", e);
         }
@@ -1148,24 +1158,29 @@ function fetchCalendarEvents() {
             }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1);
             
             // SPEICHERN
-            lastKnownEvents = dynamicEvents; 
+			lastKnownEvents = dynamicEvents; 
             localStorage.setItem('cached_events', JSON.stringify(dynamicEvents));
             
+            // Sicherstellen, dass die Anzeige nur gerendert wird, wenn wir nicht gerade offline-Daten gezeigt haben
             appLoader.style.display = 'none';
             createFilterButtons(); 
             filterContainer.style.display = 'block';
             applyCategoryFilter(null);
             hideSplash(); 
-        })  
+        })
         .catch(error => {
+            console.warn("Offline-Modus aktiv");
             appLoader.style.display = 'none';
             hideSplash(); 
-            if (lastKnownEvents.length > 0) {
+            
+            if (lastKnownEvents && lastKnownEvents.length > 0) {
                  headerTitle.textContent = "Veranstaltungen (Offline)";
-                 applyCategoryFilter(null);
+                 // Hier rufen wir die Anzeige nochmal explizit auf:
+                 createFilterButtons(); 
                  filterContainer.style.display = 'block';
+                 applyCategoryFilter(null);
             } else {
-                contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: Du bist offline.</p>`;
+                 contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Keine Internetverbindung und keine gespeicherten Daten gefunden.</p>`;
             }
         });
 }
