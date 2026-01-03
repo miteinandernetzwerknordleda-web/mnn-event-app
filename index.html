@@ -1359,8 +1359,9 @@ function fetchCalendarEvents() {
         const cardColor = provider ? provider.color : '#aaaaaa';
         
         // --- NEU: ABSAGE-PRÜFUNG ---
-        const titleUpper = (event.title || "").toUpperCase();
-        const isCancelled = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
+		const rawTitle = event.title || "";
+		const isCancelled = rawTitle.toUpperCase().includes("ABGESAGT") || 
+							rawTitle.toUpperCase().includes("FÄLLT AUS");
         // ---------------------------
 
         const monthAndYear = dateFormatter.format(event.sortDate);
@@ -1385,7 +1386,7 @@ function fetchCalendarEvents() {
         card.style.alignItems = 'flex-start'; 
 		
 		// Den Titel für die Anzeige putzen
-		const displayTitle = cleanTitle(event.title);
+		const displayTitle = cleanTitle(rawTitle);
         
 		card.innerHTML = `
             <div class="date-container" style="${isCancelled ? 'opacity: 0.5;' : ''}">
