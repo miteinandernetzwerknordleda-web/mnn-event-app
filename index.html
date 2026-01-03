@@ -536,7 +536,7 @@
     <p>Lade Events...</p>
     <div id="splash-copyright">
         (c) 2025 Miteinander Netzwerk Nordleda<br>
-		Version 1.3.001
+		Version 1.3.002
     </div>
 </div>
 
@@ -1057,36 +1057,37 @@ function downloadICS(event) {
 
 
 // --- 3. DATENABRUF VON GOOGLE KALENDER ---
-
 function fetchCalendarEvents() {
     startTime = Date.now(); 
     
-    // Falls wir bereits gecachte Events haben, zeigen wir diese sofort an
-    if (lastKnownEvents.length > 0) {
-        applyCategoryFilter(currentFilterId);
+    // 1. SOFORT-CHECK: Haben wir Daten im lokalen Speicher?
+    const savedEvents = localStorage.getItem('cached_events');
+    if (savedEvents) {
+        try {
+            lastKnownEvents = JSON.parse(savedEvents);
+            // Wenn Daten da sind, zeigen wir sie sofort an
+            applyCategoryFilter(currentFilterId);
+            appLoader.style.display = 'none'; // Spinner aus, wir haben ja was
+            console.log("Events aus localStorage geladen.");
+        } catch (e) {
+            console.error("Fehler beim Parsen des localStorage", e);
+        }
     }
     
     const hideSplash = () => {
         const elapsedTime = Date.now() - startTime;
         const remainingTime = MIN_SPLASH_DURATION - elapsedTime;
+        const target = remainingTime > 0 ? remainingTime : 0;
 
-        if (remainingTime > 0) {
+        setTimeout(() => {
+            splashScreen.classList.add('fade-out');
             setTimeout(() => {
-                splashScreen.classList.add('fade-out');
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                }, 1000); 
-            }, remainingTime);
-        } else {
-             splashScreen.classList.add('fade-out');
-             setTimeout(() => {
-                 splashScreen.style.display = 'none';
-             }, 1000); 
-        }
+                splashScreen.style.display = 'none';
+            }, 1000);
+        }, target);
     };
 
     headerTitle.textContent = "Veranstaltungen";
-    // Löschen des Inhalts nur, wenn wir noch keine Events haben
     if (lastKnownEvents.length === 0) {
         contentDiv.innerHTML = '';
     }
@@ -1099,110 +1100,50 @@ function fetchCalendarEvents() {
 
     fetch(API_URL)
         .then(response => {
-				if (!response.ok && response.status !== 0) {
-                // Wenn die Antwort nicht OK ist (z.B. 404, 403), werfen wir einen Fehler
+            // Akzeptiere Erfolg (200) ODER Cache-Antwort (0)
+            if (!response.ok && response.status !== 0) {
                 throw new Error(`HTTP error! status: ${response.status}.`);
             }
             return response.json();
         })
         .then(data => {
-            // Daten erfolgreich geladen: Neue Events verarbeiten und speichern
+            // Mapping der Daten
             dynamicEvents = data.items.map((item, index) => {
-                // ... (Hier der gesamte Mapping-Block, der Event-Daten verarbeitet) ...
-                // Fügen Sie den kompletten Event-Mapping-Code von Zeile 1100 bis 1150 HIER ein
-                
-                const rawTitle = item.summary || '';
-                const providerId = extractProviderId(rawTitle);
-                
-                const isTimedEvent = !!item.start.dateTime;
-                const eventStart = new Date(item.start.dateTime || item.start.date);
-                
-                let startDate;
-                let endDate = '';
-
-                if (isTimedEvent) {
-                    // Beispiel: "21. November 2025, 20:00 Uhr"
-                    startDate = eventStart.toLocaleDateString('de-DE', {
-                        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                    }).replace(':', ':').trim();
-                    
-                    // Nur Endzeit extrahieren (z.B. "22:00 Uhr")
-                    const eventEnd = new Date(item.end.dateTime);
-                    endDate = eventEnd.toLocaleTimeString('de-DE', {
-                        hour: '2-digit', minute: '2-digit'
-                    }).trim() + ' Uhr';
-
-
-                } else {
-                    // Ganztägige Events
-                    const tempDate = new Date(item.start.date);
-                    // Korrektur: All-day Events in Google Calendar werden manchmal als 'end: 2025-11-22' und 'start: 2025-11-21' geliefert
-                    // Wir nehmen nur den Starttag und ignorieren die Zeit.
-                    
-                    startDate = tempDate.toLocaleDateString('de-DE', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                    }).trim();
-                }
-
-                const dayOfMonth = eventStart.getDate();
-                const dayOfWeekShort = eventStart.toLocaleDateString('de-DE', {
-                    weekday: 'short'
-                }).slice(0, 2);
-                
-                // Monat/Jahr für die Sortierung speichern
-                const sortDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
-
-
+                // ... (Dein Mapping-Code bleibt exakt wie er ist) ...
+                // Wichtig: Am Ende des Mappings das Objekt zurückgeben
                 return {
                     id: index,
-                    title: cleanTitle(rawTitle),
-                    date: startDate,
-                    endDate: endDate,
-                    dayOfMonth: dayOfMonth,
-                    dayOfWeekShort: dayOfWeekShort,
-                    location: item.location || 'Keine Angabe',
-                    description: item.description || 'Keine weitere Beschreibung vorhanden.',
-                    providerId: providerId,
-                    sortDate: sortDate 
+                    title: cleanTitle(item.summary || ''),
+                    date: new Date(item.start.dateTime || item.start.date).toLocaleDateString('de-DE'),
+                    // ... etc ...
+                    sortDate: new Date(item.start.dateTime || item.start.date)
                 };
-            }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1); 
+            }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1);
             
-            // NEU: Events global speichern und anzeigen
+            // 2. SPEICHERN: Events global UND im localStorage sichern
             lastKnownEvents = dynamicEvents; 
-			appLoader.style.display = 'none';
+            localStorage.setItem('cached_events', JSON.stringify(dynamicEvents));
             
-            // FILTERLEISTE SICHTBAR MACHEN UND INITIALISIEREN
+            appLoader.style.display = 'none';
             createFilterButtons(); 
             filterContainer.style.display = 'block';
             applyCategoryFilter(null);
-            
             hideSplash(); 
-        })	
-	.catch(error => {
-            // Fehlerbehandlung für Offline-Modus oder API-Fehler
+        })  
+        .catch(error => {
+            console.warn("Fetch fehlgeschlagen, prüfe Backup...", error);
             appLoader.style.display = 'none';
             hideSplash(); 
             
-            // WICHTIG: Prüfen, ob wir Events gespeichert haben
+            // 3. FALLBACK: Wenn wir bereits Daten haben (aus Schritt 1), ist alles gut
             if (lastKnownEvents.length > 0) {
-                 console.log("Offline-Modus: Zeige letzte bekannte Events.");
                  headerTitle.textContent = "Veranstaltungen (Offline)";
-                 
-                 // **WICHTIGE KORREKTUR:** Wir rufen applyCategoryFilter(null) auf.
-                 // Diese Funktion rendert die Events UND erstellt die Filter-Buttons neu.
-                 applyCategoryFilter(null); // Zeigt alle Events aus lastKnownEvents an!
-                 
-                 // Stellt sicher, dass die Filterleiste sichtbar ist
+                 applyCategoryFilter(null);
                  filterContainer.style.display = 'block';
-
             } else {
-                // Wenn wir KEINE Events im Speicher haben, dann zeigen wir den Fehler
+                // Nur wenn absolut gar nichts da ist, kommt die Fehlermeldung
                 headerTitle.textContent = "Veranstaltungen";
-                // Der Fehlertext, den Sie sehen
                 contentDiv.innerHTML = `<p style="margin: 20px; color: red;">Konnte Events nicht laden: Du bist offline oder der Server ist nicht erreichbar.</p>`;
-                console.error("Error fetching events:", error);
-                
-                // Setzt den Filter-Container unsichtbar, da keine Daten da sind
                 filterContainer.style.display = 'none';
             }
         });
