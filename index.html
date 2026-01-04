@@ -1594,6 +1594,7 @@ function showEventDetails(event) {
 
     // SICHERHEIT: Falls Beschreibung nach dem Reinigen leer ist
     const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
+    const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
 	
 	// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
 	const displayTitle2 = (event.title || "")
@@ -1602,7 +1603,14 @@ function showEventDetails(event) {
     .trim();
 	
 	const detailsHTML = `
-        <h2 style="color: #8B4513;">${displayTitle2 || "Ohne Titel"}</h2>
+		${isCancelled2 ? `
+        <div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">
+            ⚠️ DIESER TERMIN FÄLLT AUS!
+        </div>` : ''}
+
+    <h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
+        ${displayTitle2}
+    </h2>
 		
         ${imageHtml}
         
