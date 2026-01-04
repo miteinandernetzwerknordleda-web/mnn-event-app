@@ -1646,11 +1646,7 @@ function showEventDetails(event) {
             Solltest du diesen Termin bereits in deinen persönlichen Kalender übernommen haben, denke bitte daran, ihn dort <strong>manuell zu löschen</strong> oder als "abgesagt" zu markieren.
         </div>
     </div>
-` : `
-    <div style="margin-top: 20px; padding: 12px; background: #fff5f5; border: 1px dashed #d93025; border-radius: 8px; text-align: center; color: #666; font-size: 0.9em;">
-        Kalender-Export deaktiviert, da dieser Termin abgesagt wurde.
-    </div>
-        `;
+`}
     
     window.eventDetailsCache = event;
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
