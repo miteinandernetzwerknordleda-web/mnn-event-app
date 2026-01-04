@@ -1609,9 +1609,9 @@ function showEventDetails(event) {
             ⚠️ DIESER TERMIN FÄLLT AUS!
         </div>` : ''}
 
-    <h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
-        ${displayTitle2}
-    </h2>
+		<h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
+			${displayTitle2}
+		</h2>
 		
         ${imageHtml}
         
@@ -1629,24 +1629,25 @@ function showEventDetails(event) {
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
         <p>${finalDescription.replace(/\n/g, '<br>')}</p>
         
-	${!isCancelled2 ? `
-    <div class="calendar-buttons">
-        <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
-            Zu Google Kalender hinzufügen
-        </a>
-        <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
-            Als .ics-Datei herunterladen (Outlook, Apple)
-        </button>
-    </div>
-` : `
-    <div style="margin-top: 20px; padding: 15px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
-        <span style="font-size: 1.5em;">ℹ️</span>
-        <div style="color: #856404; font-size: 0.95em; line-height: 1.4;">
-            <strong>Wichtiger Hinweis:</strong><br>
-            Solltest du diesen Termin bereits in deinen persönlichen Kalender übernommen haben, denke bitte daran, ihn dort <strong>manuell zu löschen</strong> oder als "abgesagt" zu markieren.
-        </div>
-    </div>
-`}
+		${!isCancelled2 ? `
+		<div class="calendar-buttons">
+			<a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
+				Zu Google Kalender hinzufügen
+			</a>
+			<button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
+				Als .ics-Datei herunterladen (Outlook, Apple)
+			</button>
+		</div>
+	` : `
+		<div style="margin-top: 20px; padding: 15px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+			<span style="font-size: 1.5em;">ℹ️</span>
+			<div style="color: #856404; font-size: 0.95em; line-height: 1.4;">
+				<strong>Wichtiger Hinweis:</strong><br>
+				Solltest du diesen Termin bereits in deinen persönlichen Kalender übernommen haben, denke bitte daran, ihn dort <strong>manuell zu löschen</strong> oder als "abgesagt" zu markieren.
+			</div>
+		</div>
+	`}
+	`; // Ende von detailsHTML
     
     window.eventDetailsCache = event;
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
