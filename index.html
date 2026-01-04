@@ -1596,13 +1596,13 @@ function showEventDetails(event) {
     const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
 	
 	// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
-	const displayTitle = (event.title || "")
+	const displayTitle2 = (event.title || "")
     .replace(/ABGESAGT[:]?/i, '')
     .replace(/FÄLLT AUS[:]?/i, '')
     .trim();
 	
 	const detailsHTML = `
-        <h2 style="color: #8B4513;">${display.title || "Ohne Titel"}</h2>
+        <h2 style="color: #8B4513;">${displayTitle2 || "Ohne Titel"}</h2>
 		
         ${imageHtml}
         
