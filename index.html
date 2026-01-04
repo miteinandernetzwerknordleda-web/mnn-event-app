@@ -686,7 +686,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.023"; 
+	const APP_VERSION = "1.3.124"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1364,6 +1364,12 @@ function fetchCalendarEvents() {
             separator.textContent = currentMonth;
             contentDiv.appendChild(separator);
         }
+		
+		// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
+		const displayTitle = (event.title || "")
+		.replace(/ABGESAGT[:]?/i, '')
+		.replace(/FÄLLT AUS[:]?/i, '')
+		.trim();
 
         const card = document.createElement('div');
         // Falls abgesagt, fügen wir die Klasse 'card-cancelled' hinzu
@@ -1381,11 +1387,11 @@ function fetchCalendarEvents() {
                 <div class="date-day-num">${event.dayOfMonth}</div>
                 <div class="date-day-short">${event.dayOfWeekShort}</div>
             </div>
-            <div class="card-content">
-                <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888;' : ''}">
-                ${isCancelled ? '<span style="color: #d93025; text-decoration: none; display: block; font-size: 0.8em;">FÄLLT AUS:</span>' : ''}
-                ${event.title}
-                </h3>
+		<div class="card-content">
+        ${isCancelled ? '<strong style="color: #d93025; font-size: 1.1em; display: block; margin-bottom: 4px;">⚠️ FÄLLT AUS</strong>' : ''}
+        <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888; margin-top: 0;' : ''}">
+            ${displayTitle} 
+        </h3>
                 <p>Datum: ${event.date}</p>
                 <p>Anbieter: <strong>${providerName}</strong></p>
             </div>
@@ -1589,8 +1595,14 @@ function showEventDetails(event) {
     // SICHERHEIT: Falls Beschreibung nach dem Reinigen leer ist
     const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
 	
+	// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
+	const displayTitle = (event.title || "")
+    .replace(/ABGESAGT[:]?/i, '')
+    .replace(/FÄLLT AUS[:]?/i, '')
+    .trim();
+	
 	const detailsHTML = `
-        <h2 style="color: #8B4513;">${event.title || "Ohne Titel"}</h2>
+        <h2 style="color: #8B4513;">${display.title || "Ohne Titel"}</h2>
 		
         ${imageHtml}
         
