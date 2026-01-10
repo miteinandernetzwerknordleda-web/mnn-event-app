@@ -1504,27 +1504,31 @@ function showEventDetails(event) {
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
         : '';
 
-    let timeDisplay;
-    const dateString = event.date || "";
-    const hasTime = /(\d{2}:\d{2})/.test(dateString); // Prüft, ob 00:00 Format vorhanden ist
+	let timeDisplay;
+    const dateString = event.date || ""; // Enthält: "14. Januar 2026, 19:00"
+    const hasTime = dateString.includes(':'); 
 
     if (hasTime) {
-        // Fall A: Termin hat eine Startzeit
-        if (event.endDate) {
-            // Wir extrahieren nur den Datumsteil (vor dem Komma) für die "bis"-Anzeige
-            const startDatePart = dateString.split(',')[0]; 
-            const startTimePart = dateString.match(/(\d{2}:\d{2})/)[0];
+        // Wir trennen das Datum von der Uhrzeit (Teilung am Komma)
+        const parts = dateString.split(',');
+        const startDatePart = parts[0].trim(); // "14. Januar 2026"
+        
+        // Wir holen die Startzeit (entweder aus dem String oder wir nutzen den Match)
+        const startTimeMatch = dateString.match(/(\d{2}:\d{2})/);
+        const startTimePart = startTimeMatch ? startTimeMatch[0] : "";
+
+        if (event.endDate && event.endDate !== startTimePart) {
+            // Wenn eine Endzeit da ist: "Am 14. Januar 2026 von 19:00 bis 21:00 Uhr"
             timeDisplay = `Am ${startDatePart} von ${startTimePart} bis ${event.endDate} Uhr`;
         } else {
-            timeDisplay = `Am ${dateString} Uhr`;
+            // Wenn nur Startzeit da ist: "Am 14. Januar 2026 um 19:00 Uhr"
+            timeDisplay = `Am ${startDatePart} um ${startTimePart} Uhr`;
         }
     } else {
-        // Fall B: Termin ist wirklich ganztägig (keine Uhrzeit gefunden)
-        if (event.endDate && event.endDate !== dateString) {
-            timeDisplay = `${dateString} bis ${event.endDate} (Ganztägig)`;
-        } else {
-            timeDisplay = `${dateString} (Ganztägig)`;
-        }
+        // Ganztägige Termine
+        timeDisplay = (event.endDate && event.endDate !== dateString) 
+            ? `${dateString} bis ${event.endDate} (Ganztägig)` 
+            : `${dateString} (Ganztägig)`;
     }
         
     const locationEncoded = encodeURIComponent(event.location || "");
