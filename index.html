@@ -1608,39 +1608,29 @@ function hideAllViews() {
     whatsappView.style.display = 'none';
     contactView.style.display = 'none';
     filterContainer.style.display = 'none';
-    
-    // Suchcontainer komplett ausblenden, um den Platz zu entfernen
-    searchContainer.style.display = 'none'; 
+    if (typeof searchContainer !== 'undefined') searchContainer.style.display = 'none';
 }
 
 function switchView(view) {
-    // 1. Alle Nav-Buttons deaktivieren
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    
-    // 2. Alle Inhalte verstecken
     hideAllViews();
     
-    // 3. Ansicht wechseln
     if (view === 'events') {
         document.getElementById('events-btn').classList.add('active');
         headerTitle.textContent = "Veranstaltungen";
         contentDiv.style.display = 'block';
-        searchContainer.style.display = 'block'; // Suchcontainer anzeigen
-        searchInput.style.display = 'block';
+        if (typeof searchContainer !== 'undefined') searchContainer.style.display = 'block';
+        if (typeof searchInput !== 'undefined') searchInput.style.display = 'block';
         filterContainer.style.display = 'block'; 
-
-        // Bei Event-View: Liste rendern/filtern
-        applyCategoryFilter(currentFilterId);
+        if (typeof applyCategoryFilter === 'function') applyCategoryFilter(currentFilterId);
 
     } else if (view === 'providers') {
         document.getElementById('providers-btn').classList.add('active');
         headerTitle.textContent = "Anbieter";
         contentDiv.style.display = 'block';
-        searchContainer.style.display = 'block'; // Suchcontainer anzeigen
-        searchInput.style.display = 'block';
-        
-        // Bei Anbieter-View: Liste rendern
-        renderProviderList();
+        if (typeof searchContainer !== 'undefined') searchContainer.style.display = 'block';
+        if (typeof searchInput !== 'undefined') searchInput.style.display = 'block';
+        if (typeof renderProviderList === 'function') renderProviderList();
 
     } else if (view === 'whatsapp') {
         document.getElementById('whatsapp-btn').classList.add('active');
@@ -1655,41 +1645,44 @@ function switchView(view) {
 }
 
 window.onload = () => {
-        // NEU: FEIERTAGS-LOGIK FÜR SPLASH SCREEN
+    // FEIERTAGS-LOGIK FÜR SPLASH SCREEN
+    if (typeof getSplashLogoPath === 'function') {
         const logoData = getSplashLogoPath();
         const splashLogo = document.querySelector('#splashScreen .splash-logo');
-        
-        // Logo-Pfad und Text setzen
-        document.querySelector('#splashScreen p').textContent = logoData.text;
-        splashLogo.src = logoData.path;
-        splashLogo.alt = logoData.path.replace('.jpg', '');
-        
-        // ENDE FEIERTAGS-LOGIK
-
-        fetchCalendarEvents();
-		injectVersionNumber();
-        
-        // Füge alle Nav-Button-Klicks hinzu
-        document.getElementById('events-btn').onclick = () => switchView('events');
-        document.getElementById('providers-btn').onclick = () => switchView('providers');
-        document.getElementById('whatsapp-btn').onclick = () => switchView('whatsapp');
-        document.getElementById('contact-btn').onclick = () => switchView('contact');
-        
-        // NEU: Refresh Button Event Listener
-        document.getElementById('refreshButton').onclick = handleRefresh;
-
-        // Suchfunktion nur für Events/Anbieter
-        searchInput.addEventListener('input', filterEvents);
-    };
-
-    window.onclick = function(event) {
-        if (event.target == eventModal) {
-            eventModal.style.display = "none";
-        }
-        if (event.target == veranstalterModal) {
-            veranstalterModal.style.display = "none";
+        if (splashLogo) {
+            document.querySelector('#splashScreen p').textContent = logoData.text;
+            splashLogo.src = logoData.path;
+            splashLogo.alt = logoData.path.replace('.jpg', '');
         }
     }
+
+    if (typeof fetchCalendarEvents === 'function') fetchCalendarEvents();
+    if (typeof injectVersionNumber === 'function') injectVersionNumber();
+    
+    // Nav-Buttons
+    document.getElementById('events-btn').onclick = () => switchView('events');
+    document.getElementById('providers-btn').onclick = () => switchView('providers');
+    document.getElementById('whatsapp-btn').onclick = () => switchView('whatsapp');
+    document.getElementById('contact-btn').onclick = () => switchView('contact');
+    
+    // Refresh Button
+    const refBtn = document.getElementById('refreshButton');
+    if (refBtn) {
+        refBtn.onclick = (typeof handleRefresh === 'function') ? handleRefresh : () => location.reload();
+    }
+
+    // Suchfunktion binden (mit Sicherheitscheck)
+    if (typeof searchInput !== 'undefined' && typeof filterEvents === 'function') {
+        searchInput.addEventListener('input', filterEvents);
+    } else {
+        console.warn("Suche konnte nicht initialisiert werden: searchInput oder filterEvents fehlt.");
+    }
+};
+
+window.onclick = function(event) {
+    if (event.target == eventModal) eventModal.style.display = "none";
+    if (event.target == veranstalterModal) veranstalterModal.style.display = "none";
+}
     
     // --- 7. SERVICE WORKER REGISTRIERUNG ---
 	if ('serviceWorker' in navigator) {
