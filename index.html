@@ -686,7 +686,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.124"; 
+	const APP_VERSION = "1.3.225"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1332,7 +1332,7 @@ function fetchCalendarEvents() {
 }
 	
 // --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT MONATSTRENNUNG) ---
-	function renderEventList(eventsToRender = dynamicEvents) {
+function renderEventList(eventsToRender = dynamicEvents) {
     contentDiv.innerHTML = '';
     
     eventsToRender.sort((a, b) => a.sortDate - b.sortDate);
@@ -1350,10 +1350,26 @@ function fetchCalendarEvents() {
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
         const cardColor = provider ? provider.color : '#aaaaaa';
         
-        // --- NEU: ABSAGE-PRÜFUNG ---
+        // --- LOGIK-PRÜFUNG FÜR STATUS ---
         const titleUpper = (event.title || "").toUpperCase();
         const isCancelled = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
-        // ---------------------------
+        const isMoved = titleUpper.includes("VERSCHOBEN");
+        const isChanged = titleUpper.includes("ÄNDERUNG");
+
+        // Priorisierung der Farben (Abgesagt gewinnt vor Verschoben, gewinnt vor Änderung)
+        let statusColor = cardColor;
+        let statusLabel = '';
+        
+        if (isCancelled) {
+            statusColor = '#d93025'; // Rot
+            statusLabel = '<strong style="color: #d93025; font-size: 1.1em; display: block; margin-bottom: 4px;">⚠️ FÄLLT AUS</strong>';
+        } else if (isMoved) {
+            statusColor = '#ffc107'; // Gelb/Bernstein
+            statusLabel = '<strong style="color: #e6a700; font-size: 1.1em; display: block; margin-bottom: 4px;">📅 VERSCHOBEN</strong>';
+        } else if (isChanged) {
+            statusColor = '#2196F3'; // Blau
+            statusLabel = '<strong style="color: #0d47a1; font-size: 1.1em; display: block; margin-bottom: 4px;">ℹ️ ÄNDERUNG</strong>';
+        }
 
         const monthAndYear = dateFormatter.format(event.sortDate);
         
@@ -1364,34 +1380,34 @@ function fetchCalendarEvents() {
             separator.textContent = currentMonth;
             contentDiv.appendChild(separator);
         }
-		
-		// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
-		const displayTitle = (event.title || "")
-		.replace(/ABGESAGT[:]?/i, '')
-		.replace(/FÄLLT AUS[:]?/i, '')
-		.trim();
+        
+        // Titel säubern für die Anzeige
+        const displayTitle = (event.title || "")
+            .replace(/ABGESAGT[:]?/i, '')
+            .replace(/FÄLLT AUS[:]?/i, '')
+            .replace(/VERSCHOBEN[:]?/i, '')
+            .replace(/ÄNDERUNG[:]?/i, '')
+            .trim();
 
         const card = document.createElement('div');
-        // Falls abgesagt, fügen wir die Klasse 'card-cancelled' hinzu
         card.className = `card ${isCancelled ? 'card-cancelled' : ''}`;
         
-        // Bei Absage färben wir den Balken rot statt in Provider-Farbe
-        card.style.borderLeftColor = isCancelled ? '#d93025' : cardColor;
-        card.style.setProperty('--event-color', isCancelled ? '#d93025' : cardColor);
-        
+        // Farben dynamisch setzen
+        card.style.borderLeftColor = statusColor;
+        card.style.setProperty('--event-color', statusColor);
         card.style.display = 'flex';
         card.style.alignItems = 'flex-start'; 
-		
-		card.innerHTML = `
+        
+        card.innerHTML = `
             <div class="date-container" style="${isCancelled ? 'opacity: 0.5;' : ''}">
                 <div class="date-day-num">${event.dayOfMonth}</div>
                 <div class="date-day-short">${event.dayOfWeekShort}</div>
             </div>
-		<div class="card-content">
-        ${isCancelled ? '<strong style="color: #d93025; font-size: 1.1em; display: block; margin-bottom: 4px;">⚠️ FÄLLT AUS</strong>' : ''}
-        <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888; margin-top: 0;' : ''}">
-            ${displayTitle} 
-        </h3>
+            <div class="card-content">
+                ${statusLabel}
+                <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888;' : ''} margin-top: 0;">
+                    ${displayTitle} 
+                </h3>
                 <p>Datum: ${event.date}</p>
                 <p>Anbieter: <strong>${providerName}</strong></p>
             </div>
@@ -1702,94 +1718,86 @@ function showEventDetails(event) {
     // ENDE NEU: Refresh-Funktion
 
 // --- 6. NAVIGATION UND START (ERWEITERT) ---
-
-function hideAllViews() {
-    contentDiv.style.display = 'none';
-    whatsappView.style.display = 'none';
-    contactView.style.display = 'none';
-    filterContainer.style.display = 'none';
+// --- STATUS LOGIK (VERSCHOBEN & ÄNDERUNG HINZUGEFÜGT) ---
+    const titleUpper = (event.title || "").toUpperCase();
+    const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
+    const isMoved2 = titleUpper.includes("VERSCHOBEN");
+    const isChanged2 = titleUpper.includes("ÄNDERUNG");
     
-    // Suchcontainer komplett ausblenden, um den Platz zu entfernen
-    searchContainer.style.display = 'none'; 
-}
+    // Säuberung des Titels (alle Keywords entfernen)
+    const displayTitle2 = (event.title || "")
+        .replace(/ABGESAGT[:]?/i, '')
+        .replace(/FÄLLT AUS[:]?/i, '')
+        .replace(/VERSCHOBEN[:]?/i, '')
+        .replace(/ÄNDERUNG[:]?/i, '')
+        .trim();
 
-function switchView(view) {
-    // 1. Alle Nav-Buttons deaktivieren
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    
-    // 2. Alle Inhalte verstecken
-    hideAllViews();
-    
-    // 3. Ansicht wechseln
-    if (view === 'events') {
-        document.getElementById('events-btn').classList.add('active');
-        headerTitle.textContent = "Veranstaltungen";
-        contentDiv.style.display = 'block';
-        searchContainer.style.display = 'block'; // Suchcontainer anzeigen
-        searchInput.style.display = 'block';
-        filterContainer.style.display = 'block'; 
-
-        // Bei Event-View: Liste rendern/filtern
-        applyCategoryFilter(currentFilterId);
-
-    } else if (view === 'providers') {
-        document.getElementById('providers-btn').classList.add('active');
-        headerTitle.textContent = "Anbieter";
-        contentDiv.style.display = 'block';
-        searchContainer.style.display = 'block'; // Suchcontainer anzeigen
-        searchInput.style.display = 'block';
-        
-        // Bei Anbieter-View: Liste rendern
-        renderProviderList();
-
-    } else if (view === 'whatsapp') {
-        document.getElementById('whatsapp-btn').classList.add('active');
-        headerTitle.textContent = "WhatsApp";
-        whatsappView.style.display = 'block';
-        
-    } else if (view === 'contact') {
-        document.getElementById('contact-btn').classList.add('active');
-        headerTitle.textContent = "Feedback & Impressum"; 
-        contactView.style.display = 'block';
+    // Dynamische Info-Box basierend auf dem Status
+    let statusBoxHtml = '';
+    if (isCancelled2) {
+        statusBoxHtml = `
+            <div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">
+                ⚠️ DIESER TERMIN FÄLLT AUS!
+            </div>`;
+    } else if (isMoved2) {
+        statusBoxHtml = `
+            <div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800;">
+                📅 TERMIN VERSCHOBEN!
+            </div>`;
+    } else if (isChanged2) {
+        statusBoxHtml = `
+            <div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">
+                ℹ️ ÄNDERUNG BEACHTEN!
+            </div>`;
     }
-}
+    
+    const detailsHTML = `
+        ${statusBoxHtml}
 
-window.onload = () => {
-        // NEU: FEIERTAGS-LOGIK FÜR SPLASH SCREEN
-        const logoData = getSplashLogoPath();
-        const splashLogo = document.querySelector('#splashScreen .splash-logo');
+        <h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
+            ${displayTitle2}
+        </h2>
         
-        // Logo-Pfad und Text setzen
-        document.querySelector('#splashScreen p').textContent = logoData.text;
-        splashLogo.src = logoData.path;
-        splashLogo.alt = logoData.path.replace('.jpg', '');
+        ${imageHtml}
         
-        // ENDE FEIERTAGS-LOGIK
+        <p><strong>Wann:</strong> ${timeDisplay}</p>
+        <p><strong>Wo:</strong> ${locationLink}</p>
+        
+        <hr style="border-top: 1px solid ${providerColor}; margin: 15px 0;">
+        
+        <p><strong>Anbieter:</strong>
+            <strong style="color: ${safeLinkColor}; cursor: pointer;" onclick="showVeranstalterDetails(${event.providerId})">
+                ${providerName} (Details anzeigen)
+            </strong>
+        </p>
 
-        fetchCalendarEvents();
-		injectVersionNumber();
+        <h3 style="margin-top: 20px;">Beschreibung:</h3>
+        <p>${finalDescription.replace(/\n/g, '<br>')}</p>
         
-        // Füge alle Nav-Button-Klicks hinzu
-        document.getElementById('events-btn').onclick = () => switchView('events');
-        document.getElementById('providers-btn').onclick = () => switchView('providers');
-        document.getElementById('whatsapp-btn').onclick = () => switchView('whatsapp');
-        document.getElementById('contact-btn').onclick = () => switchView('contact');
-        
-        // NEU: Refresh Button Event Listener
-        document.getElementById('refreshButton').onclick = handleRefresh;
-
-        // Suchfunktion nur für Events/Anbieter
-        searchInput.addEventListener('input', filterEvents);
-    };
-
-    window.onclick = function(event) {
-        if (event.target == eventModal) {
-            eventModal.style.display = "none";
-        }
-        if (event.target == veranstalterModal) {
-            veranstalterModal.style.display = "none";
-        }
-    }
+        ${!isCancelled2 ? `
+            <div class="calendar-buttons">
+                <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
+                    Zu Google Kalender hinzufügen
+                </a>
+                <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
+                    Als .ics-Datei herunterladen (Outlook, Apple)
+                </button>
+                ${(isMoved2 || isChanged2) ? `
+                    <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-left: 4px solid ${isMoved2 ? '#ffc107' : '#2196F3'}; font-size: 0.85em; color: #555;">
+                        <strong>Hinweis:</strong> Bitte prüfe, ob du einen alten Kalendereintrag zu diesem Termin manuell aktualisieren oder löschen musst.
+                    </div>
+                ` : ''}
+            </div>
+        ` : `
+            <div style="margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #d93025; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+                <span style="font-size: 1.5em;">⚠️</span>
+                <div style="color: #d93025; font-size: 0.95em; line-height: 1.4;">
+                    <strong>Wichtiger Hinweis:</strong><br>
+                    Solltest du diesen Termin bereits in deinen persönlichen Kalender übernommen haben, lösche ihn dort bitte <strong>manuell</strong>.
+                </div>
+            </div>
+        `}
+    `;
     
     // --- 7. SERVICE WORKER REGISTRIERUNG ---
 	if ('serviceWorker' in navigator) {
