@@ -1505,30 +1505,25 @@ function showEventDetails(event) {
         : '';
 
 	let timeDisplay;
-    const dateString = event.date || ""; // Enthält: "14. Januar 2026, 19:00"
-    const hasTime = dateString.includes(':'); 
+    const rawDate = event.date || ""; // z.B. "14. Januar 2026 um 19:00" oder "14. Januar 2026, 19:00"
+    
+    // 1. Wir isolieren das reine Datum (alles vor " um" oder vor dem ",")
+    let dateOnly = rawDate.split(' um')[0].split(',')[0].trim();
+    
+    // 2. Wir isolieren die Startzeit (Format 00:00)
+    const timeMatch = rawDate.match(/(\d{2}:\d{2})/);
+    const startTime = timeMatch ? timeMatch[0] : "";
 
-    if (hasTime) {
-        // Wir trennen das Datum von der Uhrzeit (Teilung am Komma)
-        const parts = dateString.split(',');
-        const startDatePart = parts[0].trim(); // "14. Januar 2026"
-        
-        // Wir holen die Startzeit (entweder aus dem String oder wir nutzen den Match)
-        const startTimeMatch = dateString.match(/(\d{2}:\d{2})/);
-        const startTimePart = startTimeMatch ? startTimeMatch[0] : "";
-
-        if (event.endDate && event.endDate !== startTimePart) {
-            // Wenn eine Endzeit da ist: "Am 14. Januar 2026 von 19:00 bis 21:00 Uhr"
-            timeDisplay = `Am ${startDatePart} von ${startTimePart} bis ${event.endDate} Uhr`;
+    if (startTime) {
+        // Falls eine Endzeit existiert UND sie nicht identisch mit der Startzeit ist
+        if (event.endDate && event.endDate !== startTime) {
+            timeDisplay = `Am ${dateOnly} von ${startTime} bis ${event.endDate} Uhr`;
         } else {
-            // Wenn nur Startzeit da ist: "Am 14. Januar 2026 um 19:00 Uhr"
-            timeDisplay = `Am ${startDatePart} um ${startTimePart} Uhr`;
+            timeDisplay = `Am ${dateOnly} um ${startTime} Uhr`;
         }
     } else {
-        // Ganztägige Termine
-        timeDisplay = (event.endDate && event.endDate !== dateString) 
-            ? `${dateString} bis ${event.endDate} (Ganztägig)` 
-            : `${dateString} (Ganztägig)`;
+        // Fallback für ganztägige Termine
+        timeDisplay = `${rawDate} (Ganztägig)`;
     }
         
     const locationEncoded = encodeURIComponent(event.location || "");
