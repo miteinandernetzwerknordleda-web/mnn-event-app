@@ -465,15 +465,16 @@
     }
     
 	.close {
-		position: absolute; /* Löst das X vom Textfluss */
-		right: 12px;        /* Festgelegter Abstand von rechts */
-		top: 10px;          /* Festgelegter Abstand von oben */
-		color: #555;
-		font-size: 32px;    /* Etwas kleiner, damit es eleganter wirkt */
-		font-weight: 300;
+		position: absolute; 
+		top: 8px;      /* Kleiner Abstand vom oberen weißen Rand */
+		right: 12px;   /* Kleiner Abstand vom rechten weißen Rand */
+		color: #333;   /* Dunklere Farbe für besseren Kontrast auf Weiß */
+		font-size: 28px; 
+		font-weight: bold;
 		line-height: 1;
-		z-index: 100;       /* Stellt sicher, dass es immer ganz oben liegt */
-		padding: 5px;       /* Vergrößert die Klickfläche */
+		cursor: pointer;
+		z-index: 1000; /* Stellt sicher, dass es über allem (auch dem Balken) liegt */
+		padding: 5px;
 	}
 
 	.close:hover,
@@ -495,14 +496,13 @@
 	.modal-content {
 		background-color: #fefefe;
 		margin: 10% auto; 
-		padding: 25px; /* Etwas mehr Padding für ein luftigeres Gefühl */
+		padding: 35px 20px 20px 20px; /* Oben mehr Padding (35px), um Platz für das X zu schaffen */
 		border: 1px solid #888;
 		border-radius: 10px;
 		width: 90%;
 		max-width: 580px; 
 		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-		position: relative; /* WICHTIG: Erlaubt dem X, sich hierauf zu beziehen */
-		overflow: hidden;   /* Sorgt dafür, dass der farbige Balken die Ecken nicht überlagert */
+		position: relative; /* Das ist der Anker für das X */
 	}
 	
 /* 6. MODAL STIL (Ergänzung für Bilder) */
