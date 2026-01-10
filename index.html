@@ -686,7 +686,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.225"; 
+	const APP_VERSION = "1.3.125"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1331,8 +1331,8 @@ function fetchCalendarEvents() {
         });
 }
 	
-// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN ---
-function renderEventList(eventsToRender = dynamicEvents) {
+// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT MONATSTRENNUNG) ---
+	function renderEventList(eventsToRender = dynamicEvents) {
     contentDiv.innerHTML = '';
     
     eventsToRender.sort((a, b) => a.sortDate - b.sortDate);
@@ -1346,32 +1346,14 @@ function renderEventList(eventsToRender = dynamicEvents) {
     const dateFormatter = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' });
 
     eventsToRender.forEach(event => {
-        if (!event) return; // Sicherheit
-
         const provider = providers.find(p => p.id == event.providerId);
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
         const cardColor = provider ? provider.color : '#aaaaaa';
         
-        // --- LOGIK-PRÜFUNG FÜR STATUS ---
+        // --- NEU: ABSAGE-PRÜFUNG ---
         const titleUpper = (event.title || "").toUpperCase();
         const isCancelled = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
-        const isMoved = titleUpper.includes("VERSCHOBEN");
-        const isChanged = titleUpper.includes("ÄNDERUNG");
-
-        // Priorisierung und Farben festlegen
-        let statusColor = cardColor;
-        let statusLabel = '';
-        
-        if (isCancelled) {
-            statusColor = '#d93025'; 
-            statusLabel = '<strong style="color: #d93025; font-size: 1.1em; display: block; margin-bottom: 4px;">⚠️ FÄLLT AUS</strong>';
-        } else if (isMoved) {
-            statusColor = '#ffc107'; 
-            statusLabel = '<strong style="color: #e6a700; font-size: 1.1em; display: block; margin-bottom: 4px;">📅 VERSCHOBEN</strong>';
-        } else if (isChanged) {
-            statusColor = '#2196F3'; 
-            statusLabel = '<strong style="color: #0d47a1; font-size: 1.1em; display: block; margin-bottom: 4px;">ℹ️ ÄNDERUNG</strong>';
-        }
+        // ---------------------------
 
         const monthAndYear = dateFormatter.format(event.sortDate);
         
@@ -1382,33 +1364,34 @@ function renderEventList(eventsToRender = dynamicEvents) {
             separator.textContent = currentMonth;
             contentDiv.appendChild(separator);
         }
-        
-        // Titel säubern für die Anzeige
-        const displayTitle = (event.title || "")
-            .replace(/ABGESAGT[:]?/i, '')
-            .replace(/FÄLLT AUS[:]?/i, '')
-            .replace(/VERSCHOBEN[:]?/i, '')
-            .replace(/ÄNDERUNG[:]?/i, '')
-            .trim();
+		
+		// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
+		const displayTitle = (event.title || "")
+		.replace(/ABGESAGT[:]?/i, '')
+		.replace(/FÄLLT AUS[:]?/i, '')
+		.trim();
 
         const card = document.createElement('div');
+        // Falls abgesagt, fügen wir die Klasse 'card-cancelled' hinzu
         card.className = `card ${isCancelled ? 'card-cancelled' : ''}`;
         
-        card.style.borderLeftColor = statusColor;
-        card.style.setProperty('--event-color', statusColor);
+        // Bei Absage färben wir den Balken rot statt in Provider-Farbe
+        card.style.borderLeftColor = isCancelled ? '#d93025' : cardColor;
+        card.style.setProperty('--event-color', isCancelled ? '#d93025' : cardColor);
+        
         card.style.display = 'flex';
         card.style.alignItems = 'flex-start'; 
-        
-        card.innerHTML = `
+		
+		card.innerHTML = `
             <div class="date-container" style="${isCancelled ? 'opacity: 0.5;' : ''}">
                 <div class="date-day-num">${event.dayOfMonth}</div>
                 <div class="date-day-short">${event.dayOfWeekShort}</div>
             </div>
-            <div class="card-content">
-                ${statusLabel}
-                <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888;' : ''} margin-top: 0;">
-                    ${displayTitle} 
-                </h3>
+		<div class="card-content">
+        ${isCancelled ? '<strong style="color: #d93025; font-size: 1.1em; display: block; margin-bottom: 4px;">⚠️ FÄLLT AUS</strong>' : ''}
+        <h3 style="${isCancelled ? 'text-decoration: line-through; color: #888; margin-top: 0;' : ''}">
+            ${displayTitle} 
+        </h3>
                 <p>Datum: ${event.date}</p>
                 <p>Anbieter: <strong>${providerName}</strong></p>
             </div>
@@ -1418,19 +1401,158 @@ function renderEventList(eventsToRender = dynamicEvents) {
         contentDiv.appendChild(card);
     });
 }
+// --- ENDE FUNKTIONEN ZUM RENDERN DER LISTEN ---
 
-// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS ---
+// --- FUNKTIONEN FÜR KATEGORIE-FILTER ---
+
+function createFilterButtons() {
+    const filterContainer = document.getElementById('filter-container');
+    filterContainer.innerHTML = '';
+    
+    const allBtn = document.createElement('span');
+    allBtn.className = 'filter-btn selected';
+    allBtn.textContent = 'Alle Events';
+    allBtn.onclick = () => {
+        searchInput.value = ''; 
+        applyCategoryFilter(null);
+    };
+    filterContainer.appendChild(allBtn);
+
+    providers.forEach(provider => {
+        if (provider.id !== 99 && provider.id !== 11) {
+            const btn = document.createElement('span');
+            btn.className = 'filter-btn';
+            btn.textContent = provider.name;
+            btn.onclick = () => {
+                searchInput.value = ''; 
+                applyCategoryFilter(provider.id);
+            };
+            filterContainer.appendChild(btn);
+        }
+    });
+}
+
+function applyCategoryFilter(providerId) {
+    currentFilterId = providerId;
+    
+    // 1. **DEFINIERE DIE DATENQUELLE**
+    // WICHTIG: Wenn dynamicEvents (Online-Daten) leer sind, 
+    // verwende die letzte bekannte Version (lastKnownEvents).
+    const sourceData = dynamicEvents.length > 0 ? dynamicEvents : lastKnownEvents;
+
+    // 2. **FILTERN DER DATEN**
+    // Filtere zuerst die gesamte Datenquelle
+    let filteredEvents = sourceData;
+
+    if (currentFilterId !== null) {
+        filteredEvents = sourceData.filter(event => event.providerId === currentFilterId);
+    }
+    
+    // Wenn gesucht wird, filtere zusätzlich nach Suchbegriffen
+    const searchTerm = searchInput.value.toLowerCase();
+    if (searchTerm) {
+        filteredEvents = filteredEvents.filter(event => 
+            event.title.toLowerCase().includes(searchTerm) ||
+            event.description.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    // 3. **RENDERN UND ANZEIGEN**
+    // Die Event-Liste rendern
+    renderEventList(filteredEvents); 
+}
+// --- ENDE FUNKTIONEN FÜR KATEGORIE-FILTER ---
+
+
+    function renderProviderList(providersToRender = providers) {
+        headerTitle.textContent = "Anbieter";
+        contentDiv.innerHTML = '';
+        
+        // Filterleiste ausblenden
+        document.getElementById('filter-container').style.display = 'none';
+
+        providersToRender.forEach(provider => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            card.style.display = 'flex';
+            card.style.alignItems = 'flex-start';
+            
+            const cardColor = provider.color || '#aaaaaa';
+            
+            card.style.borderLeftColor = cardColor;
+            card.style.setProperty('--event-color', cardColor);
+            
+            card.innerHTML = `
+                <div class="date-container" style="visibility: hidden;">
+                    <div class="date-day-num">00</div>
+                    <div class="date-day-short">XX</div>
+                </div>
+                <div class="card-content">
+                    <h3>${provider.name}</h3>
+                    <p>Info: ${provider.info}</p>
+                </div>
+            `;
+            card.onclick = () => showVeranstalterDetails(provider.id);
+            contentDiv.appendChild(card);
+        });
+    }
+
+function filterEvents() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    
+    if (document.getElementById('events-btn').classList.contains('active')) {
+        
+        const eventsToSearch = lastKnownEvents.length > 0 ? lastKnownEvents : dynamicEvents;
+
+        const filteredEvents = eventsToSearch.filter(event => {
+            const provider = providers.find(p => p.id == event.providerId);
+            const providerName = provider ? provider.name.toLowerCase() : '';
+            
+            const matchesSearchTerm = event.title.toLowerCase().includes(searchTerm) ||
+                                      event.location.toLowerCase().includes(searchTerm) ||
+                                      providerName.includes(searchTerm);
+                                      
+            if (searchTerm.length > 0) {
+                return matchesSearchTerm;
+            } else {
+                return currentFilterId === null || event.providerId === currentFilterId;
+            }
+        });
+        
+        if (searchTerm.length > 0) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('selected'));
+        } else {
+             applyCategoryFilter(currentFilterId);
+        }
+
+
+        renderEventList(filteredEvents);
+
+    } else if (document.getElementById('providers-btn').classList.contains('active')) {
+        const filteredProviders = providers.filter(provider => {
+            return provider.name.toLowerCase().includes(searchTerm) ||
+                   provider.info.toLowerCase().includes(searchTerm);
+        });
+        renderProviderList(filteredProviders);
+    }
+}
+
+
+// --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (MIT KALENDER-LOGIK) ---
+
 function showEventDetails(event) {
-    if (!event) return;
-
     const provider = providers.find(p => p.id == event.providerId);
     const providerName = provider ? provider.name : "Unbekannter Anbieter";
     const providerColor = provider ? provider.color : '#8B4513';
     const safeLinkColor = '#8B4513';
 
+    // SICHERHEIT: Fallback für Beschreibung, falls null oder undefined
     const originalDescription = event.description || "";
+
     const imageUrl = getEmbeddableDriveLink(originalDescription);
     let cleanedDescription = originalDescription;
+    
     const fullLinkRegex = /https:\/\/drive\.google\.com\/(?:file\/d\/|open\?id=)[a-zA-Z0-9_-]+(?:[^ \n\r]*)/g;
     
     if (imageUrl && originalDescription) {
@@ -1441,78 +1563,143 @@ function showEventDetails(event) {
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
         : '';
 
+    // Zeit-Anzeige (Timed vs. All-Day)
     let timeDisplay;
     if (event.endDate) {
         const startDatePart = (event.date || "").split(',')[0]; 
         const startTimePart = (event.date || "").match(/(\d{2}:\d{2})/)?.[0] || '';
-        timeDisplay = startTimePart ? `Am ${startDatePart} von ${startTimePart} bis ${event.endDate}` : `${event.date || ""} bis ${event.endDate}`;
+        
+        if(startTimePart) {
+            timeDisplay = `Am ${startDatePart} von ${startTimePart} bis ${event.endDate}`;
+        } else {
+            timeDisplay = `${event.date || ""} bis ${event.endDate}`;
+        }
     } else {
         timeDisplay = `${event.date || ""} (Ganztägig)`;
     }
         
     const locationEncoded = encodeURIComponent(event.location || "");
-    const locationLink = `<a href="https://maps.google.com/?q=${locationEncoded}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location || "Keine Ortsangabe"} (Auf Karte anzeigen)</a>`;
+    const locationLink = `<a href="https://www.google.com/maps/search/?api=1&query=${locationEncoded}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location || "Keine Ortsangabe"} (Auf Karte anzeigen)</a>`;
 
     const googleCalendarUrl = getGoogleCalendarUrl(event); 
+
     const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
+    // Alte Inhalte entfernen (außer Schließen-Button)
     Array.from(modalContent.children).forEach(child => {
-        if (!child.classList.contains('close')) child.remove();
+        if (!child.classList.contains('close')) {
+            child.remove();
+        }
     });
 
+    // SICHERHEIT: Falls Beschreibung nach dem Reinigen leer ist
     const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
-    
-    // Status-Logik für Modal
-    const titleUpper = (event.title || "").toUpperCase();
-    const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
-    const isMoved2 = titleUpper.includes("VERSCHOBEN");
-    const isChanged2 = titleUpper.includes("ÄNDERUNG");
-    
-    const displayTitle2 = (event.title || "")
-        .replace(/ABGESAGT[:]?/i, '')
-        .replace(/FÄLLT AUS[:]?/i, '')
-        .replace(/VERSCHOBEN[:]?/i, '')
-        .replace(/ÄNDERUNG[:]?/i, '')
-        .trim();
+	const isCancelled2 = (event.title || "").toUpperCase().includes("ABGESAGT") || 
+						 (event.title || "").toUpperCase().includes("FÄLLT AUS");
+	
+	// Wir erstellen NUR für die Anzeige eine gesäuberte Variable
+	const displayTitle2 = (event.title || "")
+    .replace(/ABGESAGT[:]?/i, '')
+    .replace(/FÄLLT AUS[:]?/i, '')
+    .trim();
+	
+	const detailsHTML = `
+		${isCancelled2 ? `
+        <div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">
+            ⚠️ DIESER TERMIN FÄLLT AUS!
+        </div>` : ''}
 
-    let statusBoxHtml = '';
-    if (isCancelled2) {
-        statusBoxHtml = `<div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">⚠️ DIESER TERMIN FÄLLT AUS!</div>`;
-    } else if (isMoved2) {
-        statusBoxHtml = `<div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800;">📅 TERMIN VERSCHOBEN!</div>`;
-    } else if (isChanged2) {
-        statusBoxHtml = `<div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">ℹ️ ÄNDERUNG BEACHTEN!</div>`;
-    }
-    
-    const detailsHTML = `
-        ${statusBoxHtml}
-        <h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${displayTitle2}</h2>
+		<h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">
+			${displayTitle2}
+		</h2>
+		
         ${imageHtml}
+        
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
+        
         <hr style="border-top: 1px solid ${providerColor}; margin: 15px 0;">
-        <p><strong>Anbieter:</strong> <strong style="color: ${safeLinkColor}; cursor: pointer;" onclick="showVeranstalterDetails(${event.providerId})">${providerName} (Details)</strong></p>
+        
+        <p><strong>Anbieter:</strong>
+            <strong style="color: ${safeLinkColor}; cursor: pointer;" onclick="showVeranstalterDetails(${event.providerId})">
+                ${providerName} (Details anzeigen)
+            </strong>
+        </p>
+
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
         <p>${finalDescription.replace(/\n/g, '<br>')}</p>
         
-        ${!isCancelled2 ? `
-            <div class="calendar-buttons">
-                <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">Zu Google Kalender hinzufügen</a>
-                <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">Als .ics-Datei herunterladen</button>
-                ${(isMoved2 || isChanged2) ? `<div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-left: 4px solid ${isMoved2 ? '#ffc107' : '#2196F3'}; font-size: 0.85em; color: #555;"><strong>Hinweis:</strong> Bitte prüfe ggf. vorhandene Kalendereinträge.</div>` : ''}
-            </div>
-        ` : `
-            <div style="margin-top: 20px; padding: 15px; background: #fff5f5; border: 1px solid #d93025; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
-                <span style="font-size: 1.5em;">⚠️</span>
-                <div style="color: #d93025; font-size: 0.95em; line-height: 1.4;"><strong>Wichtiger Hinweis:</strong> Bitte lösche vorgenommene Kalendereinträge <strong>manuell</strong>.</div>
-            </div>
-        `}
-    `;
+		${!isCancelled2 ? `
+		<div class="calendar-buttons">
+			<a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">
+				Zu Google Kalender hinzufügen
+			</a>
+			<button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">
+				Als .ics-Datei herunterladen (Outlook, Apple)
+			</button>
+		</div>
+	` : `
+		<div style="margin-top: 20px; padding: 15px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+			<span style="font-size: 1.5em;">ℹ️</span>
+			<div style="color: #856404; font-size: 0.95em; line-height: 1.4;">
+				<strong>Wichtiger Hinweis:</strong><br>
+				Solltest du diesen Termin bereits in deinen persönlichen Kalender übernommen haben, denke bitte daran, ihn dort <strong>manuell zu löschen</strong> oder als "abgesagt" zu markieren.
+			</div>
+		</div>
+	`}
+	`; // Ende von detailsHTML
     
     window.eventDetailsCache = event;
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
-    document.getElementById('eventModal').style.display = "block";
+    eventModal.style.display = "block";
 }
+
+    function showVeranstalterDetails(providerId) {
+        closeModal('eventModal'); 
+
+        const provider = providers.find(p => p.id === providerId);
+        if (!provider) {
+            console.error("Anbieter nicht gefunden:", providerId);
+            return;
+        }
+
+        document.getElementById('modalProviderName').textContent = provider.name;
+        document.getElementById('modalProviderContact').textContent = provider.contact || 'Keine Angabe';
+        document.getElementById('modalProviderInfo').textContent = provider.info || 'Keine weiteren Informationen.';
+        
+        const linkElement = document.getElementById('modalProviderLink');
+        if (provider.link) {
+            linkElement.href = provider.link;
+            linkElement.style.display = 'inline';
+        } else {
+            linkElement.style.display = 'none';
+        }
+
+        veranstalterModal.style.display = "block";
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+    
+    // NEU: Refresh-Funktion
+    function handleRefresh() {
+        // 1. Ladehinweis und Spinner anzeigen
+        contentDiv.innerHTML = '';
+        appLoader.style.display = 'block';
+        headerTitle.textContent = "Aktualisiere..."; 
+
+        // 2. Events neu laden (mit Filter-Reset)
+        currentFilterId = null;
+        searchInput.value = '';
+        
+        // 3. Nach dem Laden wird der Loader in fetchCalendarEvents wieder versteckt
+        fetchCalendarEvents(); 
+        
+        // 4. Zur Events-Ansicht wechseln, falls nötig
+        switchView('events');
+    }
+    // ENDE NEU: Refresh-Funktion
 
 // --- 6. NAVIGATION UND START (ERWEITERT) ---
 
@@ -1603,7 +1790,6 @@ window.onload = () => {
             veranstalterModal.style.display = "none";
         }
     }
-   
     
     // --- 7. SERVICE WORKER REGISTRIERUNG ---
 	if ('serviceWorker' in navigator) {
