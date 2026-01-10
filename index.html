@@ -1277,21 +1277,37 @@ function fetchCalendarEvents() {
         })
         .then(data => {
             // ... (Dein Mapping-Block bleibt gleich wie zuvor) ...
-            dynamicEvents = data.items.map((item, index) => {
-                const rawTitle = item.summary || '';
-                const eventStart = new Date(item.start.dateTime || item.start.date);
-                return {
-                    id: index,
-                    title: cleanTitle(rawTitle),
-                    date: eventStart.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
-                    dayOfMonth: eventStart.getDate(),
-                    dayOfWeekShort: eventStart.toLocaleDateString('de-DE', { weekday: 'short' }).slice(0, 2),
-                    location: item.location || 'Keine Angabe',
-                    description: item.description || 'Keine weitere Beschreibung vorhanden.',
-                    providerId: extractProviderId(rawTitle),
-                    sortDate: new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate())
-                };
-            }).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1);
+	dynamicEvents = data.items.map((item, index) => {
+		const rawTitle = item.summary || '';
+		
+		// Start- und Endzeit extrahieren
+		const startStr = item.start.dateTime || item.start.date;
+		const endStr = item.end.dateTime || item.end.date;
+		
+		const eventStart = new Date(startStr);
+		const eventEnd = new Date(endStr);
+
+		// Wir extrahieren die reine Uhrzeit für das Ende, falls vorhanden
+		let formattedEndTime = "";
+		if (item.end.dateTime) {
+			formattedEndTime = eventEnd.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+	}
+
+    return {
+        id: index,
+        title: cleanTitle(rawTitle),
+        // Das Start-Datum formatiert
+        date: eventStart.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        // Das NEUE FELD für die End-Uhrzeit
+        endDate: formattedEndTime, 
+        dayOfMonth: eventStart.getDate(),
+        dayOfWeekShort: eventStart.toLocaleDateString('de-DE', { weekday: 'short' }).slice(0, 2),
+        location: item.location || 'Keine Angabe',
+        description: item.description || 'Keine weitere Beschreibung vorhanden.',
+        providerId: extractProviderId(rawTitle),
+        sortDate: new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate())
+    };
+}).filter(event => event.title.toLowerCase().indexOf('blockiert') === -1);
             
             // NEUES SPEICHERFORMAT
             lastKnownEvents = dynamicEvents; 
