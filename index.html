@@ -1562,6 +1562,45 @@ function showEventDetails(event) {
     eventModal.style.display = "block";
 }
 
+// --- BASIS-FUNKTIONEN FÜR MODALS ---
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+function showVeranstalterDetails(providerId) {
+    // Falls ein anderes Modal offen ist, schließen
+    closeModal('eventModal'); 
+
+    const provider = providers.find(p => p.id === providerId);
+    if (!provider) {
+        console.error("Anbieter nicht gefunden:", providerId);
+        return;
+    }
+
+    // Felder im Veranstalter-Modal füllen
+    document.getElementById('modalProviderName').textContent = provider.name;
+    document.getElementById('modalProviderContact').textContent = provider.contact || 'Keine Angabe';
+    document.getElementById('modalProviderInfo').textContent = provider.info || 'Keine weiteren Informationen.';
+    
+    const linkElement = document.getElementById('modalProviderLink');
+    if (provider.link) {
+        linkElement.href = provider.link;
+        linkElement.style.display = 'inline';
+    } else {
+        linkElement.style.display = 'none';
+    }
+
+    // Modal anzeigen
+    const veranstalterModal = document.getElementById('veranstalterModal');
+    if (veranstalterModal) {
+        veranstalterModal.style.display = "block";
+    }
+}
+
 // --- 6. NAVIGATION UND START (ERWEITERT) ---
 
 function hideAllViews() {
