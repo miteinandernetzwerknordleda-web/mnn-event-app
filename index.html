@@ -1331,7 +1331,7 @@ function fetchCalendarEvents() {
         });
 }
 	
-// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT MONATSTRENNUNG) ---
+// --- 4. FUNKTIONEN ZUM RENDERN DER LISTEN (MIT STATUS-LOGIK) ---
 function renderEventList(eventsToRender = dynamicEvents) {
     contentDiv.innerHTML = '';
     eventsToRender.sort((a, b) => a.sortDate - b.sortDate);
@@ -1349,23 +1349,21 @@ function renderEventList(eventsToRender = dynamicEvents) {
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
         const cardColor = provider ? provider.color : '#aaaaaa';
         
-        // --- ERWEITERTE STATUS-PRÜFUNG ---
         const titleUpper = (event.title || "").toUpperCase();
         const isCancelled = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
         const isMoved = titleUpper.includes("VERSCHOBEN");
         const isChanged = titleUpper.includes("ÄNDERUNG");
 
-        // Farblogik festlegen
         let statusColor = cardColor;
         let statusLabel = '';
         if (isCancelled) {
             statusColor = '#d93025';
             statusLabel = '<strong style="color: #d93025; font-size: 1.1em; display: block; margin-bottom: 4px;">⚠️ FÄLLT AUS</strong>';
         } else if (isMoved) {
-            statusColor = '#ffc107'; // Gelb
+            statusColor = '#ffc107';
             statusLabel = '<strong style="color: #e6a700; font-size: 1.1em; display: block; margin-bottom: 4px;">📅 VERSCHOBEN</strong>';
         } else if (isChanged) {
-            statusColor = '#2196F3'; // Blau
+            statusColor = '#2196F3';
             statusLabel = '<strong style="color: #0d47a1; font-size: 1.1em; display: block; margin-bottom: 4px;">ℹ️ ÄNDERUNG</strong>';
         }
 
@@ -1378,7 +1376,6 @@ function renderEventList(eventsToRender = dynamicEvents) {
             contentDiv.appendChild(separator);
         }
 		
-        // Titel säubern
         const displayTitle = (event.title || "")
             .replace(/ABGESAGT[:]?/i, '').replace(/FÄLLT AUS[:]?/i, '')
             .replace(/VERSCHOBEN[:]?/i, '').replace(/ÄNDERUNG[:]?/i, '')
@@ -1409,6 +1406,64 @@ function renderEventList(eventsToRender = dynamicEvents) {
         card.onclick = () => showEventDetails(event);
         contentDiv.appendChild(card);
     });
+}
+
+// --- FUNKTIONEN FÜR KATEGORIE-FILTER ---
+function createFilterButtons() {
+    const filterContainer = document.getElementById('filter-container');
+    if (!filterContainer) return;
+    filterContainer.innerHTML = '';
+    
+    const allBtn = document.createElement('span');
+    allBtn.className = 'filter-btn selected';
+    allBtn.textContent = 'Alle Events';
+    allBtn.onclick = () => {
+        if(typeof searchInput !== 'undefined') searchInput.value = ''; 
+        applyCategoryFilter(null);
+    };
+    filterContainer.appendChild(allBtn);
+
+    providers.forEach(provider => {
+        if (provider.id !== 99 && provider.id !== 11) {
+            const btn = document.createElement('span');
+            btn.className = 'filter-btn';
+            btn.textContent = provider.name;
+            btn.onclick = () => {
+                if(typeof searchInput !== 'undefined') searchInput.value = ''; 
+                applyCategoryFilter(provider.id);
+            };
+            filterContainer.appendChild(btn);
+        }
+    });
+}
+
+function applyCategoryFilter(providerId) {
+    currentFilterId = providerId;
+    const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0) ? dynamicEvents : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
+    let filteredEvents = sourceData;
+
+    if (currentFilterId !== null) {
+        filteredEvents = sourceData.filter(event => event.providerId === currentFilterId);
+    }
+    
+    const searchTerm = (typeof searchInput !== 'undefined') ? searchInput.value.toLowerCase() : "";
+    if (searchTerm) {
+        filteredEvents = filteredEvents.filter(event => 
+            event.title.toLowerCase().includes(searchTerm) ||
+            event.description.toLowerCase().includes(searchTerm)
+        );
+    }
+    renderEventList(filteredEvents); 
+}
+
+function handleRefresh() {
+    contentDiv.innerHTML = '';
+    appLoader.style.display = 'block';
+    headerTitle.textContent = "Aktualisiere..."; 
+    currentFilterId = null;
+    if(typeof searchInput !== 'undefined') searchInput.value = '';
+    fetchCalendarEvents(); 
+    switchView('events');
 }
 
 // --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (MIT KALENDER-LOGIK) ---
