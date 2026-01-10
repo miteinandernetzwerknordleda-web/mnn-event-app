@@ -1554,13 +1554,16 @@ function showEventDetails(event) {
         .trim();
 
     // Dynamische Info-Box
-    let statusBoxHtml = '';
+	let statusBoxHtml = '';
     if (isCancelled2) {
-        statusBoxHtml = `<div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">⚠️ DIESER TERMIN FÄLLT AUS!</div>`;
+        // HIER margin-top: 20px hinzugefügt
+        statusBoxHtml = `<div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">⚠️ DIESER TERMIN FÄLLT AUS!</div>`;
     } else if (isMoved2) {
-        statusBoxHtml = `<div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800;">📅 TERMIN VERSCHOBEN!</div>`;
+        // HIER margin-top: 20px hinzugefügt
+        statusBoxHtml = `<div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800; margin-top: 20px;">📅 TERMIN VERSCHOBEN!</div>`;
     } else if (isChanged2) {
-        statusBoxHtml = `<div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px;">ℹ️ ÄNDERUNG BEACHTEN!</div>`;
+        // HIER margin-top: 20px hinzugefügt
+        statusBoxHtml = `<div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">ℹ️ ÄNDERUNG BEACHTEN!</div>`;
     }
     
     const detailsHTML = `
