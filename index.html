@@ -1601,35 +1601,63 @@ function showVeranstalterDetails(providerId) {
     }
 }
 
-// --- 6. NAVIGATION UND START (ERWEITERT) ---
+// --- 6. NAVIGATION UND START (VOLLSTÄNDIG & REPARIERT) ---
+
+function filterEvents() {
+    // Variable lokal im Filter sicherstellen
+    const sInput = document.getElementById('searchInput');
+    if (!sInput) return;
+    
+    const searchTerm = sInput.value.toLowerCase().trim();
+    const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0) 
+                       ? dynamicEvents 
+                       : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
+
+    const filteredEvents = sourceData.filter(event => {
+        const provider = providers.find(p => p.id == event.providerId);
+        const providerName = provider ? provider.name.toLowerCase() : '';
+        return (event.title || "").toLowerCase().includes(searchTerm) ||
+               (event.location || "").toLowerCase().includes(searchTerm) ||
+               providerName.includes(searchTerm);
+    });
+
+    if (typeof renderEventList === 'function') {
+        renderEventList(filteredEvents);
+    }
+}
 
 function hideAllViews() {
-    contentDiv.style.display = 'none';
-    whatsappView.style.display = 'none';
-    contactView.style.display = 'none';
-    filterContainer.style.display = 'none';
-    if (typeof searchContainer !== 'undefined') searchContainer.style.display = 'none';
+    if (typeof contentDiv !== 'undefined') contentDiv.style.display = 'none';
+    if (typeof whatsappView !== 'undefined') whatsappView.style.display = 'none';
+    if (typeof contactView !== 'undefined') contactView.style.display = 'none';
+    if (typeof filterContainer !== 'undefined') filterContainer.style.display = 'none';
+    
+    const sContainer = document.getElementById('search-container');
+    if (sContainer) sContainer.style.display = 'none';
 }
 
 function switchView(view) {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     hideAllViews();
     
+    const sContainer = document.getElementById('search-container');
+    const sInput = document.getElementById('searchInput');
+
     if (view === 'events') {
         document.getElementById('events-btn').classList.add('active');
         headerTitle.textContent = "Veranstaltungen";
         contentDiv.style.display = 'block';
-        if (typeof searchContainer !== 'undefined') searchContainer.style.display = 'block';
-        if (typeof searchInput !== 'undefined') searchInput.style.display = 'block';
-        filterContainer.style.display = 'block'; 
+        if (sContainer) sContainer.style.display = 'block';
+        if (sInput) sInput.style.display = 'block';
+        if (typeof filterContainer !== 'undefined') filterContainer.style.display = 'block'; 
         if (typeof applyCategoryFilter === 'function') applyCategoryFilter(currentFilterId);
 
     } else if (view === 'providers') {
         document.getElementById('providers-btn').classList.add('active');
         headerTitle.textContent = "Anbieter";
         contentDiv.style.display = 'block';
-        if (typeof searchContainer !== 'undefined') searchContainer.style.display = 'block';
-        if (typeof searchInput !== 'undefined') searchInput.style.display = 'block';
+        if (sContainer) sContainer.style.display = 'block';
+        if (sInput) sInput.style.display = 'block';
         if (typeof renderProviderList === 'function') renderProviderList();
 
     } else if (view === 'whatsapp') {
@@ -1645,43 +1673,54 @@ function switchView(view) {
 }
 
 window.onload = () => {
-    // FEIERTAGS-LOGIK FÜR SPLASH SCREEN
+    // 1. Splash Screen & Logo
     if (typeof getSplashLogoPath === 'function') {
         const logoData = getSplashLogoPath();
         const splashLogo = document.querySelector('#splashScreen .splash-logo');
         if (splashLogo) {
-            document.querySelector('#splashScreen p').textContent = logoData.text;
+            const splashText = document.querySelector('#splashScreen p');
+            if (splashText) splashText.textContent = logoData.text;
             splashLogo.src = logoData.path;
-            splashLogo.alt = logoData.path.replace('.jpg', '');
+            splashLogo.alt = "Splash Logo";
         }
     }
 
+    // 2. Daten laden
     if (typeof fetchCalendarEvents === 'function') fetchCalendarEvents();
     if (typeof injectVersionNumber === 'function') injectVersionNumber();
     
-    // Nav-Buttons
-    document.getElementById('events-btn').onclick = () => switchView('events');
-    document.getElementById('providers-btn').onclick = () => switchView('providers');
-    document.getElementById('whatsapp-btn').onclick = () => switchView('whatsapp');
-    document.getElementById('contact-btn').onclick = () => switchView('contact');
+    // 3. Navigation Buttons binden
+    const btnEvents = document.getElementById('events-btn');
+    const btnProviders = document.getElementById('providers-btn');
+    const btnWhatsapp = document.getElementById('whatsapp-btn');
+    const btnContact = document.getElementById('contact-btn');
+
+    if (btnEvents) btnEvents.onclick = () => switchView('events');
+    if (btnProviders) btnProviders.onclick = () => switchView('providers');
+    if (btnWhatsapp) btnWhatsapp.onclick = () => switchView('whatsapp');
+    if (btnContact) btnContact.onclick = () => switchView('contact');
     
-    // Refresh Button
+    // 4. Refresh Button
     const refBtn = document.getElementById('refreshButton');
     if (refBtn) {
         refBtn.onclick = (typeof handleRefresh === 'function') ? handleRefresh : () => location.reload();
     }
 
-    // Suchfunktion binden (mit Sicherheitscheck)
-    if (typeof searchInput !== 'undefined' && typeof filterEvents === 'function') {
-        searchInput.addEventListener('input', filterEvents);
+    // 5. Suche binden - HIER WIRD SEARCHINPUT DEFINIERT
+    const sInput = document.getElementById('searchInput');
+    if (sInput && typeof filterEvents === 'function') {
+        sInput.addEventListener('input', filterEvents);
+        console.log("Suche erfolgreich verknüpft.");
     } else {
-        console.warn("Suche konnte nicht initialisiert werden: searchInput oder filterEvents fehlt.");
+        console.error("Suche konnte nicht gestartet werden: searchInput Feld fehlt im HTML.");
     }
 };
 
 window.onclick = function(event) {
-    if (event.target == eventModal) eventModal.style.display = "none";
-    if (event.target == veranstalterModal) veranstalterModal.style.display = "none";
+    const evModal = document.getElementById('eventModal');
+    const provModal = document.getElementById('veranstalterModal');
+    if (event.target == evModal) evModal.style.display = "none";
+    if (event.target == provModal) provModal.style.display = "none";
 }
     
     // --- 7. SERVICE WORKER REGISTRIERUNG ---
