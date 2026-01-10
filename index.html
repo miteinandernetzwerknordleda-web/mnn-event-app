@@ -1489,12 +1489,26 @@ function showEventDetails(event) {
         : '';
 
     let timeDisplay;
-    if (event.endDate) {
-        const startDatePart = (event.date || "").split(',')[0]; 
-        const startTimePart = (event.date || "").match(/(\d{2}:\d{2})/)?.[0] || '';
-        timeDisplay = startTimePart ? `Am ${startDatePart} von ${startTimePart} bis ${event.endDate}` : `${event.date || ""} bis ${event.endDate}`;
+    const dateString = event.date || "";
+    const hasTime = /(\d{2}:\d{2})/.test(dateString); // Prüft, ob 00:00 Format vorhanden ist
+
+    if (hasTime) {
+        // Fall A: Termin hat eine Startzeit
+        if (event.endDate) {
+            // Wir extrahieren nur den Datumsteil (vor dem Komma) für die "bis"-Anzeige
+            const startDatePart = dateString.split(',')[0]; 
+            const startTimePart = dateString.match(/(\d{2}:\d{2})/)[0];
+            timeDisplay = `Am ${startDatePart} von ${startTimePart} bis ${event.endDate} Uhr`;
+        } else {
+            timeDisplay = `Am ${dateString} Uhr`;
+        }
     } else {
-        timeDisplay = `${event.date || ""} (Ganztägig)`;
+        // Fall B: Termin ist wirklich ganztägig (keine Uhrzeit gefunden)
+        if (event.endDate && event.endDate !== dateString) {
+            timeDisplay = `${dateString} bis ${event.endDate} (Ganztägig)`;
+        } else {
+            timeDisplay = `${dateString} (Ganztägig)`;
+        }
     }
         
     const locationEncoded = encodeURIComponent(event.location || "");
