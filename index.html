@@ -464,22 +464,24 @@
         to {top: 15%; opacity: 1}
     }
     
-    .close {
-        color: #555;
-        float: right; 
-        font-size: 36px; 
-        font-weight: 300;
-        line-height: 1;
-        margin-top: -10px; 
-        margin-right: -5px; 
-    }
+	.close {
+		position: absolute; /* Löst das X vom Textfluss */
+		right: 12px;        /* Festgelegter Abstand von rechts */
+		top: 10px;          /* Festgelegter Abstand von oben */
+		color: #555;
+		font-size: 32px;    /* Etwas kleiner, damit es eleganter wirkt */
+		font-weight: 300;
+		line-height: 1;
+		z-index: 100;       /* Stellt sicher, dass es immer ganz oben liegt */
+		padding: 5px;       /* Vergrößert die Klickfläche */
+	}
 
-    .close:hover,
-    .close:focus {
-        color: #000;
-        text-decoration: none;
-        cursor: pointer;
-    }
+	.close:hover,
+	.close:focus {
+		color: #000;
+		text-decoration: none;
+		cursor: pointer;
+	}
 
 /* 6. RESPONSIVE ANPASSUNGEN (für kleinere Bildschirme) */
     @media (max-width: 600px) {
@@ -491,15 +493,17 @@
             border-top-right-radius: 0;
         }
 	.modal-content {
-        background-color: #fefefe;
-        margin: 10% auto; 
-        padding: 20px;
-        border: 1px solid #888;
-        border-radius: 10px;
-        width: 90%;
-        max-width: 580px; 
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
+		background-color: #fefefe;
+		margin: 10% auto; 
+		padding: 25px; /* Etwas mehr Padding für ein luftigeres Gefühl */
+		border: 1px solid #888;
+		border-radius: 10px;
+		width: 90%;
+		max-width: 580px; 
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+		position: relative; /* WICHTIG: Erlaubt dem X, sich hierauf zu beziehen */
+		overflow: hidden;   /* Sorgt dafür, dass der farbige Balken die Ecken nicht überlagert */
+	}
 	
 /* 6. MODAL STIL (Ergänzung für Bilder) */
 
