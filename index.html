@@ -229,28 +229,31 @@
 
 .filter-btn {
     display: inline-block;
-    padding: 5px 10px;
-    margin-right: 8px;
+    padding: 5px 12px; /* Etwas mehr Platz für den Text */
+    margin: 4px 8px 4px 0;
     border: 1px solid #ccc;
     border-radius: 15px;
     background-color: white;
     font-size: 0.85em;
     cursor: pointer;
-    transition: background-color 0.2s, border-color 0.2s;
+    transition: all 0.2s ease;
     color: #333;
     font-weight: 500;
+    white-space: nowrap; /* Verhindert Zeilenumbruch im Button */
 }
 
 .filter-btn:hover {
-    background-color: #eee;
+    background-color: #f5f5f5;
+    border-color: #999;
 }
 
 .filter-btn.selected {
-    background-color: #8B4513;
-    color: white;
-    border-color: #8B4513;
+    /* Entferne hier background-color und color, 
+       da wir das jetzt dynamisch per JS machen! */
     font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
+
 /* --- ENDE KATEGORIE-FILTER-STILE --- */
 
 
@@ -690,7 +693,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.3.327"; 
+	const APP_VERSION = "1.4.028"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -719,7 +722,7 @@
 		{ id: 10, name: "SoVD Neuenkirchen/Nordleda", contact: "Über das Kontaktformular auf der Webseite", info: "Sozialverband Deutschland", link: "https://www.sovd-cuxhaven.de/verband-990125?verbandid=991896&cHash=f253ff976383e4a74d925e676582cb7b", color: "#D3D3D3" },
 		{ id: 11, name: "Miteinander Netzwerk Nordleda", contact: "miteinander.netzwerk.nordleda@gmail.com", info: "Interessengruppe zur Stärkung des Gemeinschaftsgefüges", link: "https://sites.google.com/view/netzwerknordleda/start", color: "#EE00EE" },
 		{ id: 12, name: "Feuerwehr Nordleda", contact: "info@feuerwehr-nordleda.de", info: "Freiwillige Feuerwehr und Jugendfeuerwehr Nordleda", link: "https://www.instagram.com/ffw_nordleda/?hl=de", color: "#FF0000" },
-		{ id: 13, name: "Kindergarten Nordleda", contact: "Nicola Schriever Tel. 04758-1287", info: "DRK Kindertagesstätte Nordleda", link: "https://www.drk-cuxhaven-hadeln.de/kita-nordleda.html", color: "##00FFFF" },
+		{ id: 13, name: "Kindergarten Nordleda", contact: "Nicola Schriever Tel. 04758-1287", info: "DRK Kindertagesstätte Nordleda", link: "https://www.drk-cuxhaven-hadeln.de/kita-nordleda.html", color: "#00FFFF" },
 		{ id: 99, name: "Freier Anbieter", contact: "Evtl. über die Veranstaltungsbeschreibung", info: "verschiedene Anbieter von Veranstaltungen", color: "#F8F8FF" }
 
     ];
@@ -743,6 +746,7 @@
     let startTime; 
     window.eventDetailsCache = null; 
 	let lastKnownEvents = [];
+	let currentView = 'events';
 
     // --- 2. HILFSFUNKTIONEN ---
 	
@@ -768,6 +772,43 @@
         }
         return null;
     }
+
+/**
+ * Berechnet die optimale Textfarbe (Schwarz oder Weiß) basierend auf der Hintergrundhelligkeit.
+ * @param {string} hexcolor - Der Farbcode (z.B. #0000FF oder ##0000FF)
+ * @returns {string} - 'black' oder 'white'
+ */
+function getContrastYIQ(hexcolor) {
+    if (!hexcolor) return 'black';
+
+    // 1. Fehlerbereinigung: Entfernt alle Rauten und setzt genau eine davor
+    let cleanHex = hexcolor.replace(/#/g, "");
+    
+    // 2. Unterstützung für Kurzschreibweise (z.B. #f00 -> #ff0000)
+    if (cleanHex.length === 3) {
+        cleanHex = cleanHex.split('').map(char => char + char).join('');
+    }
+
+    // Falls der Hex-Code nach der Reinigung ungültig ist
+    if (cleanHex.length !== 6) {
+        console.warn("Ungültiger Farbcode: " + hexcolor);
+        return 'black';
+    }
+
+    // 3. Umwandlung in RGB-Werte
+    const r = parseInt(cleanHex.substr(0, 2), 16);
+    const g = parseInt(cleanHex.substr(2, 2), 16);
+    const b = parseInt(cleanHex.substr(4, 2), 16);
+
+    // 4. YIQ-Formel zur Berechnung der wahrgenommenen Helligkeit
+    // (Standard nach FCC-Richtlinien)
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+
+    // 5. Schwellenwert-Logik:
+    // Ein Wert von 128 ist die Mitte. Wir nehmen 160, damit hellere Farben
+    // (wie Hellgrau oder Gelb) früher schwarzen Text erhalten.
+    return (yiq >= 160) ? 'black' : 'white';
+}
 
 // ERWEITERTE FEIERTAGS-LOGIK START
 
@@ -1434,46 +1475,85 @@ function createFilterButtons() {
     if (!filterContainer) return;
     filterContainer.innerHTML = '';
     
+    const firstBtnText = (currentView === 'providers') ? 'Alle Anbieter' : 'Alle Events';
+
     const allBtn = document.createElement('span');
-    allBtn.className = 'filter-btn selected';
-    allBtn.textContent = 'Alle Events';
-    allBtn.onclick = () => {
+    allBtn.className = 'filter-btn' + (currentFilterId === null ? ' selected' : '');
+    allBtn.textContent = firstBtnText;
+    
+    if (currentFilterId === null) {
+        allBtn.style.backgroundColor = '#8B4513';
+        allBtn.style.color = 'white';
+        allBtn.style.borderColor = '#8B4513';
+    }
+
+    allBtn.onclick = (e) => {
+        e.stopPropagation();
         if(typeof searchInput !== 'undefined') searchInput.value = ''; 
         applyCategoryFilter(null);
     };
     filterContainer.appendChild(allBtn);
 
-    providers.forEach(provider => {
-        if (provider.id !== 99 && provider.id !== 11) {
-            const btn = document.createElement('span');
-            btn.className = 'filter-btn';
-            btn.textContent = provider.name;
-            btn.onclick = () => {
-                if(typeof searchInput !== 'undefined') searchInput.value = ''; 
-                applyCategoryFilter(provider.id);
-            };
-            filterContainer.appendChild(btn);
+    const displayProviders = [...providers].sort((a, b) => a.id - b.id);
+
+    displayProviders.forEach(provider => {
+        const btn = document.createElement('span');
+        const isSelected = (currentFilterId == provider.id);
+        
+        btn.className = 'filter-btn' + (isSelected ? ' selected' : '');
+        btn.textContent = provider.name;
+        btn.style.borderColor = provider.color || '#ccc';
+
+		if (isSelected) {
+            btn.style.setProperty('background-color', provider.color, 'important');
+            btn.style.setProperty('border-color', provider.color, 'important');
+            
+            // Hier erzwingen wir die Kontrastfarbe
+            const textColor = getContrastYIQ(provider.color);
+            btn.style.setProperty('color', textColor, 'important');
+        } else {
+            btn.style.backgroundColor = 'white';
+            btn.style.color = '#333';
+            btn.style.borderColor = provider.color || '#ccc';
         }
+
+        btn.onclick = (e) => {
+            e.stopPropagation();
+            if(typeof searchInput !== 'undefined') searchInput.value = ''; 
+            applyCategoryFilter(provider.id);
+        };
+        filterContainer.appendChild(btn);
     });
 }
 
 function applyCategoryFilter(providerId) {
     currentFilterId = providerId;
-    const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0) ? dynamicEvents : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
-    let filteredEvents = sourceData;
-
-    if (currentFilterId !== null) {
-        filteredEvents = sourceData.filter(event => event.providerId === currentFilterId);
-    }
+	
+	// Zeichnet die Buttons neu, damit der "selected" Rahmen an der richtigen Stelle ist
+    createFilterButtons();
     
-    const searchTerm = (typeof searchInput !== 'undefined') ? searchInput.value.toLowerCase() : "";
-    if (searchTerm) {
-        filteredEvents = filteredEvents.filter(event => 
-            event.title.toLowerCase().includes(searchTerm) ||
-            event.description.toLowerCase().includes(searchTerm)
-        );
+    if (currentView === 'providers') {
+        // Wenn wir bei den Anbietern sind:
+        renderProviderList(currentFilterId); 
+    } else {
+        // Wenn wir bei den Events sind (deine bestehende Logik):
+        const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0) ? dynamicEvents : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
+        let filteredEvents = sourceData;
+
+        if (currentFilterId !== null) {
+            filteredEvents = sourceData.filter(event => event.providerId === currentFilterId);
+        }
+        
+        // Suche einbeziehen...
+        const searchTerm = (typeof searchInput !== 'undefined') ? searchInput.value.toLowerCase() : "";
+        if (searchTerm) {
+            filteredEvents = filteredEvents.filter(event => 
+                event.title.toLowerCase().includes(searchTerm) ||
+                event.description.toLowerCase().includes(searchTerm)
+            );
+        }
+        renderEventList(filteredEvents); 
     }
-    renderEventList(filteredEvents); 
 }
 
 function handleRefresh() {
@@ -1486,14 +1566,106 @@ function handleRefresh() {
     switchView('events');
 }
 
+function renderProviderList(filterId = null) {
+    if (typeof contentDiv === 'undefined' || !contentDiv) return;
+    contentDiv.innerHTML = '';
+    
+    let filteredProviders = [...providers]; 
+    if (filterId !== null) {
+        filteredProviders = filteredProviders.filter(p => Number(p.id) === Number(filterId));
+    }
+
+    filteredProviders.sort((a, b) => a.id - b.id);
+
+    filteredProviders.forEach(provider => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.setAttribute('data-provider-id', provider.id);
+        
+        const pColor = provider.color || '#8B4513';
+        card.style.borderLeft = `10px solid ${pColor}`;
+        
+// --- KONTAKT-LOGIK MIT ICONS, AUTO-BETREFF UND NEUEM TAB ---
+        let contactHTML = 'Keine Angabe';
+        const rawContact = provider.contact || '';
+        const linkColor = "#004a99"; // Dein dunkles Blau
+
+		if (rawContact) {
+			if (rawContact.includes('@')) {
+				const subject = encodeURIComponent(`Anfrage an ${provider.name}`);
+				contactHTML = `<a href="mailto:${rawContact}?subject=${subject}" target="_blank" rel="noopener" style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
+								  <span style="font-size: 1.3em;">📧</span> ${rawContact}
+							   </a>`;
+			} else if (/[0-9]/.test(rawContact)) {
+				const cleanNumber = rawContact.replace(/[^0-9+]/g, '');
+				contactHTML = `<a href="tel:${cleanNumber}" style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
+								  <span style="font-size: 1.3em;">📞</span> ${rawContact}
+							   </a>`;
+			} else {
+				contactHTML = rawContact;
+			}
+		}
+
+        card.innerHTML = `
+            <div class="card-content">
+                <h3 style="margin: 0 0 8px 0; color: #333; font-size: 1.2em;">${provider.name}</h3>
+                <p style="margin: 4px 0;"><strong>Kontakt:</strong> ${contactHTML}</p>
+                ${provider.info ? `<p style="margin: 8px 0 0 0; color: #666; font-size: 0.9em; line-height: 1.4;">${provider.info}</p>` : ''}
+            </div>
+        `;
+        
+        // WICHTIG: Damit der Klick auf den Link nicht die "Details"-Seite öffnet:
+		card.onclick = (e) => {
+			// Prüft, ob der Klick auf einen Link ODER auf etwas innerhalb eines Links (wie das Icon) erfolgte
+			if (e.target.closest('a')) return;
+			
+			if (typeof showVeranstalterDetails === 'function') {
+				showVeranstalterDetails(provider.id);
+			}
+		};
+        
+        contentDiv.appendChild(card);
+    });
+}
+
+function renderProviderListFiltered(listToRender) {
+    if (!contentDiv) return;
+    contentDiv.innerHTML = '';
+    
+    listToRender.forEach(provider => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.borderLeft = `10px solid ${provider.color || '#ccc'}`;
+        card.innerHTML = `
+            <div class="card-content">
+                <h3 style="margin: 0 0 8px 0; color: #8B4513;">${provider.name}</h3>
+                <p style="margin: 4px 0;"><strong>Kontakt:</strong> ${provider.contact || 'Keine Angabe'}</p>
+                <p style="margin: 4px 0; font-size: 0.9em;">${provider.info || ''}</p>
+            </div>
+        `;
+        card.onclick = () => showVeranstalterDetails(provider.id);
+        contentDiv.appendChild(card);
+    });
+}
+
 // --- 5. FUNKTIONEN ZUM ANZEIGEN DER DETAILS (MIT KALENDER-LOGIK) ---
 function showEventDetails(event) {
-    if (!event) return; // Sicherheits-Check
+    if (!event) return; 
 
     const provider = providers.find(p => p.id == event.providerId);
     const providerName = provider ? provider.name : "Unbekannter Anbieter";
     const providerColor = provider ? provider.color : '#8B4513';
     const safeLinkColor = '#8B4513';
+
+    const eventModal = document.getElementById('eventModal');
+    const modalContent = eventModal.querySelector('.modal-content');
+    
+    // --- DER LINKE RAHMEN (Identisch zum Kontaktmodal) ---
+    if (modalContent) {
+        modalContent.style.borderLeft = `10px solid ${providerColor}`;
+        // Sicherstellen, dass Padding vorhanden ist, damit der Text nicht am Balken klebt
+        modalContent.style.paddingLeft = "20px";
+    }
 
     const originalDescription = event.description || "";
     const imageUrl = getEmbeddableDriveLink(originalDescription);
@@ -1508,25 +1680,19 @@ function showEventDetails(event) {
         ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
         : '';
 
-	let timeDisplay;
-    const rawDate = event.date || ""; // z.B. "14. Januar 2026 um 19:00" oder "14. Januar 2026, 19:00"
-    
-    // 1. Wir isolieren das reine Datum (alles vor " um" oder vor dem ",")
+    let timeDisplay;
+    const rawDate = event.date || ""; 
     let dateOnly = rawDate.split(' um')[0].split(',')[0].trim();
-    
-    // 2. Wir isolieren die Startzeit (Format 00:00)
     const timeMatch = rawDate.match(/(\d{2}:\d{2})/);
     const startTime = timeMatch ? timeMatch[0] : "";
 
     if (startTime) {
-        // Falls eine Endzeit existiert UND sie nicht identisch mit der Startzeit ist
         if (event.endDate && event.endDate !== startTime) {
             timeDisplay = `Am ${dateOnly} von ${startTime} bis ${event.endDate} Uhr`;
         } else {
             timeDisplay = `Am ${dateOnly} um ${startTime} Uhr`;
         }
     } else {
-        // Fallback für ganztägige Termine
         timeDisplay = `${rawDate} (Ganztägig)`;
     }
         
@@ -1534,7 +1700,6 @@ function showEventDetails(event) {
     const locationLink = `<a href="https://maps.google.com/?q=${locationEncoded}" target="_blank" style="color: ${safeLinkColor}; font-weight: bold;">${event.location || "Keine Ortsangabe"} (Auf Karte anzeigen)</a>`;
 
     const googleCalendarUrl = getGoogleCalendarUrl(event); 
-    const modalContent = document.getElementById('eventModal').querySelector('.modal-content');
     
     Array.from(modalContent.children).forEach(child => {
         if (!child.classList.contains('close')) child.remove();
@@ -1542,7 +1707,6 @@ function showEventDetails(event) {
 
     const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
     
-    // Status-Logik für Modal
     const titleUpper = (event.title || "").toUpperCase();
     const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
     const isMoved2 = titleUpper.includes("VERSCHOBEN");
@@ -1553,16 +1717,12 @@ function showEventDetails(event) {
         .replace(/VERSCHOBEN[:]?/i, '').replace(/ÄNDERUNG[:]?/i, '')
         .trim();
 
-    // Dynamische Info-Box
-	let statusBoxHtml = '';
+    let statusBoxHtml = '';
     if (isCancelled2) {
-        // HIER margin-top: 20px hinzugefügt
         statusBoxHtml = `<div style="background: #d93025; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">⚠️ DIESER TERMIN FÄLLT AUS!</div>`;
     } else if (isMoved2) {
-        // HIER margin-top: 20px hinzugefügt
         statusBoxHtml = `<div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800; margin-top: 20px;">📅 TERMIN VERSCHOBEN!</div>`;
     } else if (isChanged2) {
-        // HIER margin-top: 20px hinzugefügt
         statusBoxHtml = `<div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">ℹ️ ÄNDERUNG BEACHTEN!</div>`;
     }
     
@@ -1572,7 +1732,7 @@ function showEventDetails(event) {
         ${imageHtml}
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
-        <hr style="border-top: 1px solid ${providerColor}; margin: 15px 0;">
+        <hr style="border-top: 1px solid #eee; margin: 15px 0;">
         <p><strong>Anbieter:</strong> <strong style="color: ${safeLinkColor}; cursor: pointer;" onclick="showVeranstalterDetails(${event.providerId})">${providerName} (Details)</strong></p>
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
         <p>${finalDescription.replace(/\n/g, '<br>')}</p>
@@ -1608,7 +1768,6 @@ function closeModal(modalId) {
 }
 
 function showVeranstalterDetails(providerId) {
-    // Falls ein anderes Modal offen ist, schließen
     closeModal('eventModal'); 
 
     const provider = providers.find(p => p.id === providerId);
@@ -1617,11 +1776,56 @@ function showVeranstalterDetails(providerId) {
         return;
     }
 
-    // Felder im Veranstalter-Modal füllen
-    document.getElementById('modalProviderName').textContent = provider.name;
-    document.getElementById('modalProviderContact').textContent = provider.contact || 'Keine Angabe';
-    document.getElementById('modalProviderInfo').textContent = provider.info || 'Keine weiteren Informationen.';
+    // --- NEU: Farbakzent setzen ---
+    // Wir suchen uns das Header-Element oder den Inhaltsbereich des Modals
+    const veranstalterModal = document.getElementById('veranstalterModal');
+    // Wir greifen uns das erste div im Modal (oft die 'modal-content' Klasse)
+    const modalContentBox = veranstalterModal.querySelector('.modal-content') || veranstalterModal;
     
+    if (modalContentBox) {
+        // Setzt einen 10px Balken links in der Anbieterfarbe
+        modalContentBox.style.borderLeft = `10px solid ${provider.color || '#8B4513'}`;
+    }
+
+    // Felder füllen
+    document.getElementById('modalProviderName').textContent = provider.name;
+    
+    // Kontakt mit Icons
+    const contactContainer = document.getElementById('modalProviderContact');
+    let contactHTML = 'Keine Angabe';
+    const rawContact = provider.contact || '';
+    const linkColor = "#004a99";
+
+// --- KONTAKT-LOGIK MIT PRÄGNANTEN EMOJIS ---
+    if (rawContact) {
+        if (rawContact.includes('@')) {
+            const subject = encodeURIComponent(`Anfrage an ${provider.name}`);
+            // Emoji: 📧 (E-Mail)
+            contactHTML = `<a href="mailto:${rawContact}?subject=${subject}" 
+                              target="_blank" rel="noopener" 
+                              style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
+                              <span style="font-size: 1.3em; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));">📧</span> 
+                              ${rawContact}
+                           </a>`;
+        } else if (/[0-9]/.test(rawContact)) {
+            const cleanNumber = rawContact.replace(/[^0-9+]/g, '');
+            // Emoji: 📞 (Telefonhörer)
+            contactHTML = `<a href="tel:${cleanNumber}" 
+                              style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
+                              <span style="font-size: 1.3em; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));">📞</span> 
+                              ${rawContact}
+                           </a>`;
+        } else {
+            contactHTML = rawContact;
+        }
+    }
+    contactContainer.innerHTML = contactHTML;
+
+    // Info & Link
+    const infoElement = document.getElementById('modalProviderInfo');
+    infoElement.textContent = provider.info || 'Keine weiteren Informationen.';
+    infoElement.style.whiteSpace = "pre-line";
+
     const linkElement = document.getElementById('modalProviderLink');
     if (provider.link) {
         linkElement.href = provider.link;
@@ -1630,8 +1834,6 @@ function showVeranstalterDetails(providerId) {
         linkElement.style.display = 'none';
     }
 
-    // Modal anzeigen
-    const veranstalterModal = document.getElementById('veranstalterModal');
     if (veranstalterModal) {
         veranstalterModal.style.display = "block";
     }
@@ -1640,25 +1842,39 @@ function showVeranstalterDetails(providerId) {
 // --- 6. NAVIGATION UND START (VOLLSTÄNDIG & REPARIERT) ---
 
 function filterEvents() {
-    // Variable lokal im Filter sicherstellen
     const sInput = document.getElementById('searchInput');
     if (!sInput) return;
     
     const searchTerm = sInput.value.toLowerCase().trim();
-    const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0) 
-                       ? dynamicEvents 
-                       : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
 
-    const filteredEvents = sourceData.filter(event => {
-        const provider = providers.find(p => p.id == event.providerId);
-        const providerName = provider ? provider.name.toLowerCase() : '';
-        return (event.title || "").toLowerCase().includes(searchTerm) ||
-               (event.location || "").toLowerCase().includes(searchTerm) ||
-               providerName.includes(searchTerm);
-    });
+    // FALL 1: Wir sind auf der Anbieter-Seite
+    if (currentView === 'providers') {
+        const filteredProviders = providers.filter(p => {
+            if (p.id === 99) return false; // "Freie Anbieter" ignorieren
+            return p.name.toLowerCase().includes(searchTerm) || 
+                   (p.info && p.info.toLowerCase().includes(searchTerm));
+        });
+        
+        // Wir nutzen eine kleine Hilfsfunktion zum Rendern der gefilterten Anbieter
+        renderProviderListFiltered(filteredProviders);
 
-    if (typeof renderEventList === 'function') {
-        renderEventList(filteredEvents);
+    // FALL 2: Wir sind auf der Termin-Seite (dein bisheriger Code)
+    } else {
+        const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0) 
+                           ? dynamicEvents 
+                           : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
+
+        const filteredEvents = sourceData.filter(event => {
+            const provider = providers.find(p => p.id == event.providerId);
+            const providerName = provider ? provider.name.toLowerCase() : '';
+            return (event.title || "").toLowerCase().includes(searchTerm) ||
+                   (event.location || "").toLowerCase().includes(searchTerm) ||
+                   providerName.includes(searchTerm);
+        });
+
+        if (typeof renderEventList === 'function') {
+            renderEventList(filteredEvents);
+        }
     }
 }
 
@@ -1673,6 +1889,7 @@ function hideAllViews() {
 }
 
 function switchView(view) {
+    currentView = view; // Hier speichern wir die aktuelle Ansicht
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     hideAllViews();
     
@@ -1685,26 +1902,41 @@ function switchView(view) {
         contentDiv.style.display = 'block';
         if (sContainer) sContainer.style.display = 'block';
         if (sInput) sInput.style.display = 'block';
-        if (typeof filterContainer !== 'undefined') filterContainer.style.display = 'block'; 
-        if (typeof applyCategoryFilter === 'function') applyCategoryFilter(currentFilterId);
+		if (typeof filterContainer !== 'undefined') filterContainer.style.display = 'block'; 
+			createFilterButtons(); // Neu hinzugefügt, um "Alle Events" zu zeigen
+		if (typeof applyCategoryFilter === 'function') applyCategoryFilter(currentFilterId);
 
     } else if (view === 'providers') {
         document.getElementById('providers-btn').classList.add('active');
         headerTitle.textContent = "Anbieter";
         contentDiv.style.display = 'block';
+
+        // HIER: Suche und Bubbles wieder sichtbar machen
         if (sContainer) sContainer.style.display = 'block';
         if (sInput) sInput.style.display = 'block';
-        if (typeof renderProviderList === 'function') renderProviderList();
+        
+		if (typeof filterContainer !== 'undefined' && filterContainer) {
+			filterContainer.style.display = 'block';
+		}
+		createFilterButtons(); // Neu hinzugefügt, um "Alle Anbieter" zu zeigen
+		if (typeof renderProviderList === 'function') {
+			renderProviderList(currentFilterId); 
+		}
+
+        // Liste zeichnen
+        if (typeof renderProviderList === 'function') {
+            renderProviderList(currentFilterId); 
+        }
 
     } else if (view === 'whatsapp') {
         document.getElementById('whatsapp-btn').classList.add('active');
         headerTitle.textContent = "WhatsApp";
-        whatsappView.style.display = 'block';
+        if (whatsappView) whatsappView.style.display = 'block';
         
     } else if (view === 'contact') {
         document.getElementById('contact-btn').classList.add('active');
         headerTitle.textContent = "Feedback & Impressum"; 
-        contactView.style.display = 'block';
+        if (contactView) contactView.style.display = 'block';
     }
 }
 
