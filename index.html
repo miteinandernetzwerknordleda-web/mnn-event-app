@@ -1442,9 +1442,13 @@ function renderEventList(eventsToRender = dynamicEvents) {
         }
 		
         const displayTitle = (event.title || "")
-            .replace(/ABGESAGT[:]?/i, '').replace(/FÄLLT AUS[:]?/i, '')
-            .replace(/VERSCHOBEN[:]?/i, '').replace(/ÄNDERUNG[:]?/i, '')
-            .trim();
+			.replace(/ABGESAGT[:]?/i, '')
+			.replace(/FÄLLT AUS[:]?/i, '')
+			.replace(/VERSCHOBEN[:]?/i, '')
+			.replace(/ÄNDERUNG[:]?/i, '')
+			.replace(/NEU[:]?/i, '')
+			.replace(/\(ID[:]?\s*\d+\)/i, '') // <-- Diese Zeile entfernt (ID:3), (ID: 3) etc.
+			.trim();
 
         const card = document.createElement('div');
         card.className = `card ${isCancelled ? 'card-cancelled' : ''}`;
@@ -1726,10 +1730,13 @@ function showEventDetails(event) {
     const isNew = titleUpper.includes("NEU");
     
     const displayTitle2 = (event.title || "")
-        .replace(/ABGESAGT[:]?/i, '').replace(/FÄLLT AUS[:]?/i, '')
-        .replace(/VERSCHOBEN[:]?/i, '').replace(/ÄNDERUNG[:]?/i, '')
-        .replace(/NEU[:]?/i, '')
-        .trim();
+		.replace(/ABGESAGT[:]?/i, '')
+		.replace(/FÄLLT AUS[:]?/i, '')
+		.replace(/VERSCHOBEN[:]?/i, '')
+		.replace(/ÄNDERUNG[:]?/i, '')
+		.replace(/NEU[:]?/i, '')
+		.replace(/\(ID[:]?\s*\d+\)/i, '') // <-- Diese Zeile entfernt (ID:3), (ID: 3) etc.
+		.trim();
 
     let statusBoxHtml = '';
     if (isCancelled2) {
