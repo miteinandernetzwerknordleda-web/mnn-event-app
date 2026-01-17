@@ -699,7 +699,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.4.033"; 
+	const APP_VERSION = "1.5.034"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1448,14 +1448,7 @@ function renderEventList(eventsToRender = dynamicEvents) {
             contentDiv.appendChild(separator);
         }
 		
-        const displayTitle = (event.title || "")
-			.replace(/ABGESAGT[:]?/i, '')
-			.replace(/FÄLLT AUS[:]?/i, '')
-			.replace(/VERSCHOBEN[:]?/i, '')
-			.replace(/ÄNDERUNG[:]?/i, '')
-			.replace(/NEU[:]?/i, '')
-			.replace(/\(ID[:]?\s*\d+\)/i, '') // <-- Diese Zeile entfernt (ID:3), (ID: 3) etc.
-			.trim();
+        const displayTitle = getCleanTitle(event.title);
 
         const card = document.createElement('div');
         card.className = `card ${isCancelled ? 'card-cancelled' : ''}`;
@@ -1736,14 +1729,7 @@ function showEventDetails(event) {
     const isChanged2 = titleUpper.includes("ÄNDERUNG");
     const isNew = titleUpper.includes("NEU");
     
-    const displayTitle2 = (event.title || "")
-		.replace(/ABGESAGT[:]?/i, '')
-		.replace(/FÄLLT AUS[:]?/i, '')
-		.replace(/VERSCHOBEN[:]?/i, '')
-		.replace(/ÄNDERUNG[:]?/i, '')
-		.replace(/NEU[:]?/i, '')
-		.replace(/\(ID[:]?\s*\d+\)/i, '') // <-- Diese Zeile entfernt (ID:3), (ID: 3) etc.
-		.trim();
+    const displayTitle2 = getCleanTitle(event.title);
 
     let statusBoxHtml = '';
     if (isCancelled2) {
@@ -1922,16 +1908,42 @@ async function shareEvent() {
     const event = window.eventDetailsCache;
     if (!event) return;
 
-    // Wir erstellen einen Link, der die ID des Events enthält
-    const shareUrl = `${window.location.origin}${window.location.pathname}?eid=${event.shortId}`;
+    // 1. Den sauberen Namen holen
+    const cleanTitle = getCleanTitle(event.title);
     
-    const shareText = `🗓️ *${event.title}*\n` +
-                      `Wann: ${event.date}\n\n` +
-                      `Hier alle Details ansehen:`;
+    // 2. Status-Logik für den Text (analog zu deiner Liste)
+    const titleUpper = (event.title || "").toUpperCase();
+    let statusPrefix = "";
+    
+    if (titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS")) {
+        statusPrefix = "⚠️ FÄLLT AUS: ";
+    } else if (titleUpper.includes("VERSCHOBEN")) {
+        statusPrefix = "📅 VERSCHOBEN: ";
+    } else if (titleUpper.includes("ÄNDERUNG")) {
+        statusPrefix = "ℹ️ ÄNDERUNG: ";
+    }
+
+    // 3. Den Link zusammenbauen (mit Kurz-ID)
+    const shareUrl = `${window.location.origin}${window.location.pathname}?eid=${event.shortId || event.id}`;
+    
+    // 4. Der finale Text für WhatsApp & Co.
+    const shareText = `*${statusPrefix}${cleanTitle}*\n\n` + 
+                      `📅 Datum: ${event.date}\n` +
+                      `📍 Ort: ${event.location}\n\n` +
+                      `Alle Details hier ansehen:`;
 
     if (navigator.share) {
-        await navigator.share({ title: event.title, text: shareText, url: shareUrl });
+        try {
+            await navigator.share({ 
+                title: `${statusPrefix}${cleanTitle}`, 
+                text: shareText, 
+                url: shareUrl 
+            });
+        } catch (err) {
+            console.log("Teilen abgebrochen");
+        }
     } else {
+        // Fallback für Desktop/WhatsApp Web
         window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`, '_blank');
     }
 }
@@ -1943,6 +1955,18 @@ function generateShortId(longId) {
         hash |= 0; 
     }
     return Math.abs(hash).toString(36); // Macht daraus etwas wie "a2z5b9"
+}
+
+function getCleanTitle(rawTitle) {
+    if (!rawTitle) return "";
+    return rawTitle
+        .replace(/ABGESAGT[:]?/i, '')
+        .replace(/FÄLLT AUS[:]?/i, '')
+        .replace(/VERSCHOBEN[:]?/i, '')
+        .replace(/ÄNDERUNG[:]?/i, '')
+        .replace(/NEU[:]?/i, '')
+        .replace(/\(ID[:]?\s*\d+\)/i, '') // Entfernt (ID:2)
+        .trim();
 }
 
 function hideAllViews() {
