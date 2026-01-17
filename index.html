@@ -724,7 +724,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.5.038"; 
+	const APP_VERSION = "1.5.039"; 
     const MIN_SPLASH_DURATION = 2500; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1819,6 +1819,15 @@ function showEventDetails(event) {
     
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
     eventModal.style.display = "block";
+	
+	// Meldet den Aufruf des speziellen Events an GoatCounter
+    if (window.goatcounter && window.goatcounter.count) {
+        window.goatcounter.count({
+            path:  'event-' + (event.shortId || event.id),
+            title: getCleanTitle(event.title),
+            event: true
+        });
+    }	
 }
 
 // --- BASIS-FUNKTIONEN FÜR MODALS ---
@@ -2147,6 +2156,10 @@ function checkForDeepLink() {
     }
 }
 
+</script>
+
+<script data-goatcounter="https://mnn.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js">
 </script>
 </body>
 
