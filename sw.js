@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v31'; // Version auf v31 erhöht
+const CACHE_NAME = 'mnn-cache-v32'; // Version auf v32 erhöht
 
 const APP_PATH = '/mnn-event-app/';
 
