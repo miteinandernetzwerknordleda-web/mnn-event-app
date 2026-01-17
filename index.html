@@ -693,7 +693,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.4.028"; 
+	const APP_VERSION = "1.4.029"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1577,6 +1577,14 @@ function renderProviderList(filterId = null) {
 
     filteredProviders.sort((a, b) => a.id - b.id);
 
+    // --- EINHEITLICHE ICONS DEFINIEREN ---
+    const iconBaseStyle = 'width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
+    const mailIconSVG = `<svg ${iconBaseStyle} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
+    const phoneIconSVG = `<svg ${iconBaseStyle} viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.81 12.81 0 0 0 .63 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.63A2 2 0 0 1 22 16.92z"></path></svg>`;
+
+    // Hilfsfunktion für den Icon-Kreis (Badge)
+    const wrapIcon = (svg) => `<span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #f0f0f0; border-radius: 50%; color: #555; flex-shrink: 0;">${svg}</span>`;
+
     filteredProviders.forEach(provider => {
         const card = document.createElement('div');
         card.className = 'card';
@@ -1585,44 +1593,42 @@ function renderProviderList(filterId = null) {
         const pColor = provider.color || '#8B4513';
         card.style.borderLeft = `10px solid ${pColor}`;
         
-// --- KONTAKT-LOGIK MIT ICONS, AUTO-BETREFF UND NEUEM TAB ---
         let contactHTML = 'Keine Angabe';
         const rawContact = provider.contact || '';
-        const linkColor = "#004a99"; // Dein dunkles Blau
+        const linkColor = "#004a99"; 
 
-		if (rawContact) {
-			if (rawContact.includes('@')) {
-				const subject = encodeURIComponent(`Anfrage an ${provider.name}`);
-				contactHTML = `<a href="mailto:${rawContact}?subject=${subject}" target="_blank" rel="noopener" style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
-								  <span style="font-size: 1.3em;">📧</span> ${rawContact}
-							   </a>`;
-			} else if (/[0-9]/.test(rawContact)) {
-				const cleanNumber = rawContact.replace(/[^0-9+]/g, '');
-				contactHTML = `<a href="tel:${cleanNumber}" style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
-								  <span style="font-size: 1.3em;">📞</span> ${rawContact}
-							   </a>`;
-			} else {
-				contactHTML = rawContact;
-			}
-		}
+        if (rawContact) {
+            const commonLinkStyle = `color: ${linkColor}; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;`;
+            
+            if (rawContact.includes('@')) {
+                const subject = encodeURIComponent(`Anfrage an ${provider.name}`);
+                contactHTML = `<a href="mailto:${rawContact}?subject=${subject}" target="_blank" rel="noopener" style="${commonLinkStyle}">
+                                    ${wrapIcon(mailIconSVG)} <span style="text-decoration: underline;">${rawContact}</span>
+                               </a>`;
+            } else if (/[0-9]/.test(rawContact)) {
+                const cleanNumber = rawContact.replace(/[^0-9+]/g, '');
+                contactHTML = `<a href="tel:${cleanNumber}" style="${commonLinkStyle}">
+                                    ${wrapIcon(phoneIconSVG)} <span style="text-decoration: underline;">${rawContact}</span>
+                               </a>`;
+            } else {
+                contactHTML = rawContact;
+            }
+        }
 
         card.innerHTML = `
-            <div class="card-content">
-                <h3 style="margin: 0 0 8px 0; color: #333; font-size: 1.2em;">${provider.name}</h3>
-                <p style="margin: 4px 0;"><strong>Kontakt:</strong> ${contactHTML}</p>
-                ${provider.info ? `<p style="margin: 8px 0 0 0; color: #666; font-size: 0.9em; line-height: 1.4;">${provider.info}</p>` : ''}
+            <div class="card-content" style="padding: 15px;">
+                <h3 style="margin: 0 0 12px 0; color: #333; font-size: 1.25em; font-family: sans-serif;">${provider.name}</h3>
+                <div style="margin: 8px 0;">${contactHTML}</div>
+                ${provider.info ? `<p style="margin: 12px 0 0 0; color: #666; font-size: 0.9em; line-height: 1.5; white-space: pre-line;">${provider.info}</p>` : ''}
             </div>
         `;
         
-        // WICHTIG: Damit der Klick auf den Link nicht die "Details"-Seite öffnet:
-		card.onclick = (e) => {
-			// Prüft, ob der Klick auf einen Link ODER auf etwas innerhalb eines Links (wie das Icon) erfolgte
-			if (e.target.closest('a')) return;
-			
-			if (typeof showVeranstalterDetails === 'function') {
-				showVeranstalterDetails(provider.id);
-			}
-		};
+        card.onclick = (e) => {
+            if (e.target.closest('a')) return;
+            if (typeof showVeranstalterDetails === 'function') {
+                showVeranstalterDetails(provider.id);
+            }
+        };
         
         contentDiv.appendChild(card);
     });
@@ -1652,6 +1658,9 @@ function renderProviderListFiltered(listToRender) {
 function showEventDetails(event) {
     if (!event) return; 
 
+    // Cache für die shareEvent() und downloadICS() Funktionen
+    window.eventDetailsCache = event;
+
     const provider = providers.find(p => p.id == event.providerId);
     const providerName = provider ? provider.name : "Unbekannter Anbieter";
     const providerColor = provider ? provider.color : '#8B4513';
@@ -1660,10 +1669,8 @@ function showEventDetails(event) {
     const eventModal = document.getElementById('eventModal');
     const modalContent = eventModal.querySelector('.modal-content');
     
-    // --- DER LINKE RAHMEN (Identisch zum Kontaktmodal) ---
     if (modalContent) {
         modalContent.style.borderLeft = `10px solid ${providerColor}`;
-        // Sicherstellen, dass Padding vorhanden ist, damit der Text nicht am Balken klebt
         modalContent.style.paddingLeft = "20px";
     }
 
@@ -1677,7 +1684,7 @@ function showEventDetails(event) {
     }
     
     const imageHtml = imageUrl
-        ? `<div class="event-image-container"><img src="${imageUrl}" alt="Event Anhang" class="event-image"></div>`
+        ? `<div class="event-image-container" style="margin-bottom: 15px;"><img src="${imageUrl}" alt="Event Anhang" class="event-image" style="width: 100%; border-radius: 8px;"></div>`
         : '';
 
     let timeDisplay;
@@ -1711,10 +1718,12 @@ function showEventDetails(event) {
     const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
     const isMoved2 = titleUpper.includes("VERSCHOBEN");
     const isChanged2 = titleUpper.includes("ÄNDERUNG");
+    const isNew = titleUpper.includes("NEU");
     
     const displayTitle2 = (event.title || "")
         .replace(/ABGESAGT[:]?/i, '').replace(/FÄLLT AUS[:]?/i, '')
         .replace(/VERSCHOBEN[:]?/i, '').replace(/ÄNDERUNG[:]?/i, '')
+        .replace(/NEU[:]?/i, '')
         .trim();
 
     let statusBoxHtml = '';
@@ -1724,11 +1733,21 @@ function showEventDetails(event) {
         statusBoxHtml = `<div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800; margin-top: 20px;">📅 TERMIN VERSCHOBEN!</div>`;
     } else if (isChanged2) {
         statusBoxHtml = `<div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">ℹ️ ÄNDERUNG BEACHTEN!</div>`;
+    } else if (isNew) {
+        statusBoxHtml = `<div style="background: #4CAF50; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">✨ NEUER TERMIN!</div>`;
     }
+
+    // --- PIXEL-PERFEKTES BUTTON SYSTEM ---
+    const btnStyle = "display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 48px; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; color: white !important; text-decoration: none; box-sizing: border-box; font-family: sans-serif;";
     
+    const iconBase = 'width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
+    const googleIcon = `<svg ${iconBase} viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+    const icsIcon = `<svg ${iconBase} viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>`;
+    const shareIcon = `<svg ${iconBase} viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>`;
+
     const detailsHTML = `
         ${statusBoxHtml}
-        <h2 style="color: #8B4513; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${displayTitle2}</h2>
+        <h2 style="color: #8B4513; margin-top: 10px; ${isCancelled2 ? 'text-decoration: line-through; opacity: 0.5;' : ''}">${displayTitle2}</h2>
         ${imageHtml}
         <p><strong>Wann:</strong> ${timeDisplay}</p>
         <p><strong>Wo:</strong> ${locationLink}</p>
@@ -1737,23 +1756,29 @@ function showEventDetails(event) {
         <h3 style="margin-top: 20px;">Beschreibung:</h3>
         <p>${finalDescription.replace(/\n/g, '<br>')}</p>
         
-        ${!isCancelled2 ? `
-            <div class="calendar-buttons">
-                <a href="${googleCalendarUrl}" target="_blank" class="calendar-link-btn">Zu Google Kalender hinzufügen</a>
-                <button onclick="downloadICS(window.eventDetailsCache)" class="calendar-link-btn">Als .ics-Datei herunterladen</button>
-            </div>
-        ` : `
-            <div style="margin-top: 20px; padding: 15px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
-                <span style="font-size: 1.5em;">ℹ️</span>
-                <div style="color: #856404; font-size: 0.95em; line-height: 1.4;">
-                    <strong>Wichtiger Hinweis:</strong><br>
-                    Solltest du diesen Termin bereits in deinen Kalender übernommen haben, lösche ihn dort bitte <strong>manuell</strong>.
+        <div style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+            ${!isCancelled2 ? `
+                <a href="${googleCalendarUrl}" target="_blank" style="${btnStyle} background-color: #4285F4;">
+                    ${googleIcon} In Google Kalender
+                </a>
+                <button onclick="downloadICS(window.eventDetailsCache)" style="${btnStyle} background-color: #6c757d;">
+                    ${icsIcon} .ics Datei laden
+                </button>
+            ` : `
+                <div style="padding: 15px; background: #fff8e1; border: 1px solid #ffc107; border-radius: 8px; display: flex; align-items: flex-start; gap: 12px;">
+                    <span style="font-size: 1.5em;">ℹ️</span>
+                    <div style="color: #856404; font-size: 0.95em; line-height: 1.4;">
+                        <strong>Wichtiger Hinweis:</strong><br>
+                        Solltest du diesen Termin bereits gespeichert haben, lösche ihn bitte manuell aus deinem Kalender.
+                    </div>
                 </div>
-            </div>
-        `}
+            `}
+            <button onclick="shareEvent()" style="${btnStyle} background-color: #28a745;">
+                ${shareIcon} Event teilen
+            </button>
+        </div>
     `;
     
-    window.eventDetailsCache = event;
     modalContent.insertAdjacentHTML('beforeend', detailsHTML);
     eventModal.style.display = "block";
 }
@@ -1776,44 +1801,40 @@ function showVeranstalterDetails(providerId) {
         return;
     }
 
-    // --- NEU: Farbakzent setzen ---
-    // Wir suchen uns das Header-Element oder den Inhaltsbereich des Modals
     const veranstalterModal = document.getElementById('veranstalterModal');
-    // Wir greifen uns das erste div im Modal (oft die 'modal-content' Klasse)
     const modalContentBox = veranstalterModal.querySelector('.modal-content') || veranstalterModal;
     
     if (modalContentBox) {
-        // Setzt einen 10px Balken links in der Anbieterfarbe
         modalContentBox.style.borderLeft = `10px solid ${provider.color || '#8B4513'}`;
+        modalContentBox.style.paddingLeft = "20px";
     }
 
-    // Felder füllen
     document.getElementById('modalProviderName').textContent = provider.name;
     
-    // Kontakt mit Icons
+    // --- EINHEITLICHES ICON-SYSTEM (SVG) ---
+    const iconBaseStyle = 'width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
+    const mailIconSVG = `<svg ${iconBaseStyle} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
+    const phoneIconSVG = `<svg ${iconBaseStyle} viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.81 12.81 0 0 0 .63 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.63A2 2 0 0 1 22 16.92z"></path></svg>`;
+
+    const wrapIcon = (svg) => `<span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #f0f0f0; border-radius: 50%; color: #444; flex-shrink: 0;">${svg}</span>`;
+
     const contactContainer = document.getElementById('modalProviderContact');
     let contactHTML = 'Keine Angabe';
     const rawContact = provider.contact || '';
     const linkColor = "#004a99";
 
-// --- KONTAKT-LOGIK MIT PRÄGNANTEN EMOJIS ---
     if (rawContact) {
+        const commonStyle = `color: ${linkColor}; text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 12px; margin-bottom: 5px;`;
+        
         if (rawContact.includes('@')) {
             const subject = encodeURIComponent(`Anfrage an ${provider.name}`);
-            // Emoji: 📧 (E-Mail)
-            contactHTML = `<a href="mailto:${rawContact}?subject=${subject}" 
-                              target="_blank" rel="noopener" 
-                              style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
-                              <span style="font-size: 1.3em; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));">📧</span> 
-                              ${rawContact}
+            contactHTML = `<a href="mailto:${rawContact}?subject=${subject}" target="_blank" rel="noopener" style="${commonStyle}">
+                            ${wrapIcon(mailIconSVG)} <span style="text-decoration: underline;">${rawContact}</span>
                            </a>`;
         } else if (/[0-9]/.test(rawContact)) {
             const cleanNumber = rawContact.replace(/[^0-9+]/g, '');
-            // Emoji: 📞 (Telefonhörer)
-            contactHTML = `<a href="tel:${cleanNumber}" 
-                              style="color: ${linkColor}; text-decoration: underline; font-weight: 500; display: inline-flex; align-items: center; gap: 10px;">
-                              <span style="font-size: 1.3em; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.1));">📞</span> 
-                              ${rawContact}
+            contactHTML = `<a href="tel:${cleanNumber}" style="${commonStyle}">
+                            ${wrapIcon(phoneIconSVG)} <span style="text-decoration: underline;">${rawContact}</span>
                            </a>`;
         } else {
             contactHTML = rawContact;
@@ -1821,7 +1842,6 @@ function showVeranstalterDetails(providerId) {
     }
     contactContainer.innerHTML = contactHTML;
 
-    // Info & Link
     const infoElement = document.getElementById('modalProviderInfo');
     infoElement.textContent = provider.info || 'Keine weiteren Informationen.';
     infoElement.style.whiteSpace = "pre-line";
@@ -1829,7 +1849,8 @@ function showVeranstalterDetails(providerId) {
     const linkElement = document.getElementById('modalProviderLink');
     if (provider.link) {
         linkElement.href = provider.link;
-        linkElement.style.display = 'inline';
+        linkElement.style.display = 'inline-block';
+        linkElement.style.marginTop = '15px';
     } else {
         linkElement.style.display = 'none';
     }
@@ -1875,6 +1896,35 @@ function filterEvents() {
         if (typeof renderEventList === 'function') {
             renderEventList(filteredEvents);
         }
+    }
+}
+
+async function shareEvent() {
+    // Wir greifen auf das aktuell angezeigte Event zu
+    const event = window.eventDetailsCache; 
+    if (!event) return;
+
+    const shareText = `📅 *${event.title}*\n\n` +
+                      `Wann: ${event.date}\n` +
+                      `Wo: ${event.location || 'Keine Ortsangabe'}\n\n` +
+                      `Schau es dir hier an:`;
+                      
+    const shareUrl = window.location.href; // Deine Web-Adresse
+
+    if (navigator.share) {
+        try {
+            await navigator.share({
+                title: event.title,
+                text: shareText,
+                url: shareUrl
+            });
+        } catch (err) {
+            console.log("Teilen abgebrochen:", err);
+        }
+    } else {
+        // Fallback für Browser, die kein natives Teilen unterstützen (z.B. Desktop)
+        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+        window.open(waUrl, '_blank');
     }
 }
 
