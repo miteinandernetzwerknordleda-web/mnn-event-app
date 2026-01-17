@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lokale Events App</title>
+
+<meta property="og:title" content="Lokale Events & Termine">
+    <meta property="og:description" content="Alle Details zum Event findest du in der App.">
+    <meta property="og:image" content="https://miteinandernetzwerknordleda-web.github.io/mnn-event-app/icons/icon-512x512.png">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     
 <link rel="manifest" href="/mnn-event-app/manifest.json">
 	<meta name="mobile-web-app-capable" content="yes">
@@ -693,7 +699,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.4.032"; 
+	const APP_VERSION = "1.4.033"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1342,6 +1348,7 @@ function fetchCalendarEvents() {
 
     return {
 		id: item.id || index, // Wenn keine Google-ID da ist, nimm die Zeilennummer
+		shortId: generateShortId(item.id || String(index)), // Die kurze ID für den Link
         title: item.summary,
         // Das Start-Datum formatiert
         date: eventStart.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
@@ -1916,7 +1923,7 @@ async function shareEvent() {
     if (!event) return;
 
     // Wir erstellen einen Link, der die ID des Events enthält
-    const shareUrl = `${window.location.origin}${window.location.pathname}?eventid=${event.id}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?eid=${event.shortId}`;
     
     const shareText = `🗓️ *${event.title}*\n` +
                       `Wann: ${event.date}\n\n` +
@@ -1927,6 +1934,15 @@ async function shareEvent() {
     } else {
         window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`, '_blank');
     }
+}
+
+function generateShortId(longId) {
+    let hash = 0;
+    for (let i = 0; i < longId.length; i++) {
+        hash = ((hash << 5) - hash) + longId.charCodeAt(i);
+        hash |= 0; 
+    }
+    return Math.abs(hash).toString(36); // Macht daraus etwas wie "a2z5b9"
 }
 
 function hideAllViews() {
@@ -2058,14 +2074,13 @@ window.onclick = function(event) {
 
 function checkForDeepLink() {
     const urlParams = new URLSearchParams(window.location.search);
-    const eventId = urlParams.get('eventid');
+    const shortId = urlParams.get('eid'); // Wir nutzen 'eid' für kurz
 
-    if (eventId && typeof lastKnownEvents !== 'undefined' && lastKnownEvents.length > 0) {
-        const targetEvent = lastKnownEvents.find(e => String(e.id) === String(eventId));
+    if (shortId && typeof lastKnownEvents !== 'undefined') {
+        // Wir suchen jetzt nach der shortId statt der normalen ID
+        const targetEvent = lastKnownEvents.find(e => e.shortId === shortId);
         if (targetEvent) {
-            console.log("Deep-Link Treffer:", targetEvent.title);
             showEventDetails(targetEvent);
-            // URL säubern ohne die Seite neu zu laden
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
