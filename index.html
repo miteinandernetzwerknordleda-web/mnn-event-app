@@ -724,8 +724,8 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.5.037"; 
-    const MIN_SPLASH_DURATION = 2000; 
+	const APP_VERSION = "1.5.038"; 
+    const MIN_SPLASH_DURATION = 2500; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
     const DEFAULT_LOGO_PATH = 'logo.png'; 
@@ -1939,7 +1939,11 @@ function filterEvents() {
 
 async function shareEvent() {
     const event = window.eventDetailsCache;
-    if (!event) return;
+	if (!event) {
+        console.error("Keine Event-Daten zum Teilen gefunden!");
+        alert("Hoppla, die Daten konnten nicht geladen werden. Bitte versuche es noch einmal.");
+        return;
+    }
 
     // 1. Den sauberen Namen holen
     const cleanTitle = getCleanTitle(event.title);
