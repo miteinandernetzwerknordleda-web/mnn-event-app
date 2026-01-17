@@ -724,7 +724,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.5.035"; 
+	const APP_VERSION = "1.5.036"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1759,7 +1759,7 @@ function showEventDetails(event) {
     const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
     const isMoved2 = titleUpper.includes("VERSCHOBEN");
     const isChanged2 = titleUpper.includes("ÄNDERUNG");
-    const isNew = titleUpper.includes("NEU");
+    const isNewStrict = /^NEU[:]?\s+/.test(rawTitle);
     
     const displayTitle2 = getCleanTitle(event.title);
 
@@ -1770,7 +1770,7 @@ function showEventDetails(event) {
         statusBoxHtml = `<div style="background: #ffc107; color: #856404; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid #ff9800; margin-top: 20px;">📅 TERMIN VERSCHOBEN!</div>`;
     } else if (isChanged2) {
         statusBoxHtml = `<div style="background: #2196F3; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">ℹ️ ÄNDERUNG BEACHTEN!</div>`;
-    } else if (isNew) {
+    } else if (isNewStrict) {
         statusBoxHtml = `<div style="background: #4CAF50; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; margin-bottom: 15px; margin-top: 20px;">✨ NEUER TERMIN!</div>`;
     }
 
