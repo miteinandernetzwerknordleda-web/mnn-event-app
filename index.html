@@ -693,7 +693,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.4.029"; 
+	const APP_VERSION = "1.4.030"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1339,8 +1339,8 @@ function fetchCalendarEvents() {
 	}
 
     return {
-        id: index,
-        title: cleanTitle(rawTitle),
+		id: item.id || index, // Wenn keine Google-ID da ist, nimm die Zeilennummer
+        title: item.summary,
         // Das Start-Datum formatiert
         date: eventStart.toLocaleDateString('de-DE', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         // Das NEUE FELD für die End-Uhrzeit
@@ -1581,6 +1581,7 @@ function renderProviderList(filterId = null) {
     const iconBaseStyle = 'width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"';
     const mailIconSVG = `<svg ${iconBaseStyle} viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>`;
     const phoneIconSVG = `<svg ${iconBaseStyle} viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.81 12.81 0 0 0 .63 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.63A2 2 0 0 1 22 16.92z"></path></svg>`;
+	const calendarIconSVG = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
 
     // Hilfsfunktion für den Icon-Kreis (Badge)
     const wrapIcon = (svg) => `<span style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #f0f0f0; border-radius: 50%; color: #555; flex-shrink: 0;">${svg}</span>`;
@@ -1900,31 +1901,20 @@ function filterEvents() {
 }
 
 async function shareEvent() {
-    // Wir greifen auf das aktuell angezeigte Event zu
-    const event = window.eventDetailsCache; 
+    const event = window.eventDetailsCache;
     if (!event) return;
 
-    const shareText = `📅 *${event.title}*\n\n` +
-                      `Wann: ${event.date}\n` +
-                      `Wo: ${event.location || 'Keine Ortsangabe'}\n\n` +
-                      `Schau es dir hier an:`;
-                      
-    const shareUrl = window.location.href; // Deine Web-Adresse
+    // Wir erstellen einen Link, der die ID des Events enthält
+    const shareUrl = `${window.location.origin}${window.location.pathname}?eventid=${event.id}`;
+    
+    const shareText = `📅 *${event.title}*\n` +
+                      `Wann: ${event.date}\n\n` +
+                      `Hier alle Details ansehen:`;
 
     if (navigator.share) {
-        try {
-            await navigator.share({
-                title: event.title,
-                text: shareText,
-                url: shareUrl
-            });
-        } catch (err) {
-            console.log("Teilen abgebrochen:", err);
-        }
+        await navigator.share({ title: event.title, text: shareText, url: shareUrl });
     } else {
-        // Fallback für Browser, die kein natives Teilen unterstützen (z.B. Desktop)
-        const waUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
-        window.open(waUrl, '_blank');
+        window.open(`https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`, '_blank');
     }
 }
 
@@ -2034,6 +2024,25 @@ window.onload = () => {
     }
 };
 
+// 6. Deep-Link Check (Sichere Version)
+setTimeout(() => {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('eventid');
+        
+        // Prüfen, ob eventId da ist UND ob allEvents existiert
+        if (eventId && typeof allEvents !== 'undefined' && allEvents.length > 0) {
+            const targetEvent = allEvents.find(e => String(e.id) === String(eventId));
+            if (targetEvent) {
+                showEventDetails(targetEvent);
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+    } catch (err) {
+        console.error("Deep-Link Fehler abgefangen:", err);
+    }
+}, 1000); // Wir geben der App 1 Sekunde Zeit zum Laden
+
 window.onclick = function(event) {
     const evModal = document.getElementById('eventModal');
     const provModal = document.getElementById('veranstalterModal');
@@ -2041,7 +2050,6 @@ window.onclick = function(event) {
     if (event.target == provModal) provModal.style.display = "none";
 }
     
-    // --- 7. SERVICE WORKER REGISTRIERUNG ---
 	if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/mnn-event-app/sw.js', {
@@ -2055,7 +2063,7 @@ window.onclick = function(event) {
         });
     });
 }
-    // --- ENDE SERVICE WORKER REGISTRIERUNG ---
+
 </script>
 </body>
 
