@@ -693,7 +693,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.4.030"; 
+	const APP_VERSION = "1.4.031"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1282,10 +1282,12 @@ function fetchCalendarEvents() {
                 document.addEventListener('DOMContentLoaded', () => {
                     appLoader.style.display = 'none';
                     applyCategoryFilter(currentFilterId);
+					checkForDeepLink();
                 });
             } else {
                 appLoader.style.display = 'none';
                 applyCategoryFilter(currentFilterId);
+				checkForDeepLink();
             }
         } catch (e) { console.error("Cache Fehler:", e); }
     } else {
@@ -1372,11 +1374,13 @@ function fetchCalendarEvents() {
             filterContainer.style.display = 'block';
             applyCategoryFilter(null);
             hideSplash(); 
+			checkForDeepLink();
         })
         .catch(error => {
             console.warn("Nutze Offline-Daten");
             appLoader.style.display = 'none';
             hideSplash(); 
+			checkForDeepLink();
             
             if (lastKnownEvents && lastKnownEvents.length > 0) {
                 // Falls aus irgendeinem Grund die Überschrift oben nicht gesetzt wurde:
@@ -1907,7 +1911,7 @@ async function shareEvent() {
     // Wir erstellen einen Link, der die ID des Events enthält
     const shareUrl = `${window.location.origin}${window.location.pathname}?eventid=${event.id}`;
     
-    const shareText = `📅 *${event.title}*\n` +
+    const shareText = `🗓️ *${event.title}*\n` +
                       `Wann: ${event.date}\n\n` +
                       `Hier alle Details ansehen:`;
 
@@ -2024,25 +2028,6 @@ window.onload = () => {
     }
 };
 
-// 6. Deep-Link Check (Sichere Version)
-setTimeout(() => {
-    try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('eventid');
-        
-        // Prüfen, ob eventId da ist UND ob allEvents existiert
-        if (eventId && typeof allEvents !== 'undefined' && allEvents.length > 0) {
-            const targetEvent = allEvents.find(e => String(e.id) === String(eventId));
-            if (targetEvent) {
-                showEventDetails(targetEvent);
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        }
-    } catch (err) {
-        console.error("Deep-Link Fehler abgefangen:", err);
-    }
-}, 1000); // Wir geben der App 1 Sekunde Zeit zum Laden
-
 window.onclick = function(event) {
     const evModal = document.getElementById('eventModal');
     const provModal = document.getElementById('veranstalterModal');
@@ -2062,6 +2047,21 @@ window.onclick = function(event) {
             console.error('ServiceWorker Registrierung fehlgeschlagen:', error);
         });
     });
+}
+
+function checkForDeepLink() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('eventid');
+
+    if (eventId && typeof lastKnownEvents !== 'undefined' && lastKnownEvents.length > 0) {
+        const targetEvent = lastKnownEvents.find(e => String(e.id) === String(eventId));
+        if (targetEvent) {
+            console.log("Deep-Link Treffer:", targetEvent.title);
+            showEventDetails(targetEvent);
+            // URL säubern ohne die Seite neu zu laden
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
 }
 
 </script>
