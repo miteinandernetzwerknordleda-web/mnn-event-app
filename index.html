@@ -264,16 +264,41 @@
 
 
 /* 3. KARTEN-STIL */
-    .card {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #ddd; 
-        border-left: 10px solid #007bff; 
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s, box-shadow 0.2s;
-        cursor: pointer;
-    }
+	.card {
+		background: white;
+		padding: 15px;
+		border-radius: 8px;
+		border: 1px solid #ddd; 
+		border-left: 10px solid #007bff; 
+		box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+		transition: transform 0.2s, box-shadow 0.2s;
+		cursor: pointer;
+		
+		/* Zwingend erforderlich für den Sticker: */
+		position: relative;
+		overflow: hidden; 
+	}
+	
+	.corner-ribbon {
+    width: 120px;
+    background: #28a745; /* Ein sattes Grün */
+    color: white;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.7em;
+    padding: 4px 0;
+    
+    /* Positionierung schräg oben rechts */
+    position: absolute;
+    top: 12px;
+    right: -32px;
+    transform: rotate(45deg);
+    
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    z-index: 10;
+    text-transform: uppercase;
+    pointer-events: none; /* Klicks gehen durch den Sticker auf die Karte */
+	}
 
 	.card:hover {
         transform: translateY(-2px);
@@ -699,7 +724,7 @@
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.5.034"; 
+	const APP_VERSION = "1.5.035"; 
     const MIN_SPLASH_DURATION = 3000; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -1421,6 +1446,11 @@ function renderEventList(eventsToRender = dynamicEvents) {
         const providerName = provider ? provider.name : "Unbekannter Anbieter";
         const cardColor = provider ? provider.color : '#aaaaaa';
         
+        // --- NEU STICKER LOGIK (Striker Check) ---
+        // Prüft: Zeilenanfang (^) -> Genau "NEU" -> optionaler Doppelpunkt [:]? -> Leerzeichen \s+
+        const isNew = /^NEU[:]?\s+/.test(event.title || "");
+        const ribbonHtml = isNew ? `<div class="corner-ribbon">NEU</div>` : '';
+
         const titleUpper = (event.title || "").toUpperCase();
         const isCancelled = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
         const isMoved = titleUpper.includes("VERSCHOBEN");
@@ -1447,17 +1477,19 @@ function renderEventList(eventsToRender = dynamicEvents) {
             separator.textContent = currentMonth;
             contentDiv.appendChild(separator);
         }
-		
+        
         const displayTitle = getCleanTitle(event.title);
 
         const card = document.createElement('div');
+        // Wichtig: 'card' Klasse bleibt für CSS-Positioning
         card.className = `card ${isCancelled ? 'card-cancelled' : ''}`;
         card.style.borderLeftColor = statusColor;
         card.style.setProperty('--event-color', statusColor);
         card.style.display = 'flex';
         card.style.alignItems = 'flex-start'; 
-		
+        
         card.innerHTML = `
+            ${ribbonHtml}
             <div class="date-container" style="${isCancelled ? 'opacity: 0.5;' : ''}">
                 <div class="date-day-num">${event.dayOfMonth}</div>
                 <div class="date-day-short">${event.dayOfWeekShort}</div>
@@ -1918,7 +1950,7 @@ async function shareEvent() {
     if (titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS")) {
         statusPrefix = "⚠️ FÄLLT AUS: ";
     } else if (titleUpper.includes("VERSCHOBEN")) {
-        statusPrefix = "📅 VERSCHOBEN: ";
+        statusPrefix = "🗓️ VERSCHOBEN: ";
     } else if (titleUpper.includes("ÄNDERUNG")) {
         statusPrefix = "ℹ️ ÄNDERUNG: ";
     }
@@ -1928,7 +1960,7 @@ async function shareEvent() {
     
     // 4. Der finale Text für WhatsApp & Co.
     const shareText = `*${statusPrefix}${cleanTitle}*\n\n` + 
-                      `📅 Datum: ${event.date}\n` +
+                      `🗓️ Datum: ${event.date}\n` +
                       `📍 Ort: ${event.location}\n\n` +
                       `Alle Details hier ansehen:`;
 
@@ -1964,7 +1996,7 @@ function getCleanTitle(rawTitle) {
         .replace(/FÄLLT AUS[:]?/i, '')
         .replace(/VERSCHOBEN[:]?/i, '')
         .replace(/ÄNDERUNG[:]?/i, '')
-        .replace(/NEU[:]?/i, '')
+        .replace(/^NEU[:]?\s+/, '')
         .replace(/\(ID[:]?\s*\d+\)/i, '') // Entfernt (ID:2)
         .trim();
 }
