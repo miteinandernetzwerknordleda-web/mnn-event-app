@@ -9,7 +9,7 @@
   "theme_color": "#8B4513",
   "icons": [
     {
-      "src": "/mnn-event-app/icons/icon-192x192.png",
+      "src": "/mnn-event-app/icons/icon-192x192v2.png",
       "sizes": "192x192",
       "type": "image/png"
     },
