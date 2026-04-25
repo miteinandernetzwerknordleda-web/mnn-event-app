@@ -131,6 +131,34 @@
 		height: auto;      /* Erlaubt dem Header zu wachsen */
 		padding: 10px 20px;
     }
+	
+	/*Hamburger Menue Anfang
+	/* Standardmäßig ausgeblendet */
+	.menu-closed {
+		display: none; 
+		flex-direction: column; /* Stapeln */
+		background: #f0f0f0;    /* Dein grauer Grund */
+		padding: 10px;
+	}
+	
+	/* Wenn wir die Klasse "open" hinzufügen, wird es sichtbar */
+	.menu-open {
+		display: flex;
+	}
+	
+	/* Stil für den Hamburger-Button */
+	.hamburger-btn {
+		background: none;
+		border: none;
+		color: white; /* Weiß auf dem braunen Header */
+		font-size: 28px;
+		cursor: pointer;
+		padding: 0px 15px; /* Sorgt dafür, dass die Klickfläche groß genug bleibt */
+		display: flex;     /* Hilft bei der Zentrierung */
+		align-items: center;
+		justify-content: center;
+	}
+	/*Hamburger Menue Ende
 
     /* KORRIGIERT: Logo Container und Logo selbst sind jetzt eindeutig definiert */
     #logo-container {
@@ -427,45 +455,90 @@
     }
 
     /* 4. NAVIGATION */
-    #navigation {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        max-width: 600px;
-        margin: 0 auto;
-        /* HIER: Vier Buttons in der Leiste */
-        display: flex;
-        background-color: #343a40; 
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-        border-top-left-radius: 12px;
-        border-top-right-radius: 12px;
-        z-index: 20;
-    }
 
-    .nav-btn {
-        flex: 1;
-        padding: 15px 5px; /* Etwas weniger Padding für 4 Buttons */
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        font-size: 0.9em; /* Etwas kleinere Schrift */
-        cursor: pointer;
-        transition: background-color 0.3s;
-        border-radius: 0;
-        border: none;
-        background: none;
-        line-height: 1.1; 
-    }
+/* Die Navigation, die jetzt unter dem Header klebt */
+/* Das Menü-Panel */
+#navigation {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 280px;
+    height: 100%;
+    background-color: #ffffff; /* Sauberer, weißer Hintergrund */
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 9999;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1); /* Sanfterer Schatten */
+    display: flex;
+    flex-direction: column;
+    padding-top: 60px; /* Platz für den Schließen-Button */
+}
 
-    .nav-btn:hover {
-        background-color: #495057;
-    }
+#navigation.open {
+    left: 0;
+}
 
-    .nav-btn.active {
-        background-color: #8B4513;
-        font-weight: bold;
-    }
+/* Die Schließen-Taste oben rechts */
+.close-nav-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+}
+
+/* Die Navigations-Buttons */
+.nav-btn {
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    padding: 18px 25px; /* Viel Platz zum Klicken */
+    font-size: 1.1em;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: sans-serif;
+    border-bottom: 1px solid #f0f0f0; /* Dezente Trennlinie */
+}
+
+/* Hover-Effekt */
+.nav-btn:hover {
+    background-color: #f9f9f9;
+    color: #8B4513; /* Dein Braunton */
+}
+
+/* Aktiver Button (Wenn man z.B. auf 'Veranstaltungen' ist) */
+.nav-btn.active {
+    color: #8B4513;
+    font-weight: bold;
+    border-left: 5px solid #8B4513; /* Markierung am Rand */
+    background-color: #fcf5f0;
+}
+
+/* Ein Overlay, das nur da ist, wenn das Menü offen ist */
+/* Das Overlay ist standardmäßig "durchlässig" für Klicks */
+body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9998;
+    opacity: 0;              /* Unsichtbar */
+    pointer-events: none;    /* WICHTIG: Klicks gehen einfach hindurch! */
+    transition: opacity 0.3s ease;
+}
+
+/* Wenn das Menü aktiv ist, wird das Overlay sichtbar und "klickbar" */
+body.menu-active::after {
+    opacity: 1;
+    pointer-events: auto;    /* Jetzt fängt es Klicks ab, damit man das Menü schließt */
+}
 
 /* 5. MODAL-STIL */
 
@@ -584,6 +657,16 @@
     text-decoration: underline;
 }
 
+/* Versteckt alle Ansichten standardmäßig */
+.view-content {
+    display: none;
+}
+
+/* Zeigt nur die aktive Ansicht */
+.view-content.active {
+    display: block;
+}
+
 </style>
 </head>
 <body>
@@ -602,6 +685,7 @@
 
 <div class="container">
 <header id="app-header">
+<button id="menu-toggle" class="hamburger-btn" aria-label="Menü öffnen">☰</button>
     <div id="logo-container">
         <img id="app-logo" src="/mnn-event-app/logo.png" alt="Vereins Logo">
     </div>
@@ -609,6 +693,16 @@
     <button id="refreshButton">↻</button> 
 </header>
 
+
+	<nav id="navigation" class="menu-closed">
+	<button class="close-nav-btn" onclick="closeMenu()">✕</button>
+		<button id="events-btn" class="nav-btn active" onclick="switchView('events')">Veranstaltungen</button>
+		<button id="providers-btn" class="nav-btn" onclick="switchView('providers')">Anbieter</button>
+		<button id="whatsapp-btn" class="nav-btn" onclick="switchView('whatsapp')">WhatsApp</button>
+		<button id="contact-btn" class="nav-btn" onclick="switchView('contact')">Kontakt</button>
+	</nav>
+
+<div id="events-view" class="view-content active">
 <div id="search-container">
     <input type="text" id="searchInput" placeholder="Events, Anbieter oder Ort suchen...">
 </div>
@@ -709,22 +803,17 @@
         <a id="modalProviderLink" href="#" target="_blank" style="color: #8B4513;">Zur Webseite</a>
         </div>
 </div>
-    
-    <nav id="navigation">
-        <button id="events-btn" class="nav-btn active" onclick="switchView('events')">Veranstaltungen</button>
-        <button id="providers-btn" class="nav-btn" onclick="switchView('providers')">Anbieter</button>
-        <button id="whatsapp-btn" class="nav-btn" onclick="switchView('whatsapp')">WhatsApp</button>
-        <button id="contact-btn" class="nav-btn" onclick="switchView('contact')">Kontakt</button>
-    </nav>
+
 	
 </div>
 
+	<script src="providers.js"></script>
 
 <script>
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "1.5.040"; 
+	const APP_VERSION = "2.0.000"; 
     const MIN_SPLASH_DURATION = 2500; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -739,25 +828,15 @@
     const EASTER_LOGO = 'mnnsplashostern' + LOGO_EXTENSION;
     const UNITY_DAY_LOGO = 'mnnsplashdeutsch' + LOGO_EXTENSION; // Tag der Deutschen Einheit (03.10.)
     
-    // Basisdaten für die Anbieter
-    const providers = [
-        { id: 1, name: "TSV Nordleda", contact: "Jürgen Hoberg Tel. 04758-546", info: "Der lokale Sportverein mit verschiedenen Angeboten", link: "https://www.nordleda.de/vereine-und-choere/tsv-nordleda-ev/", color: "#a4bdfc" },
-        { id: 2, name: "DRK Nordleda", contact: "Anja von Bebern Tel. 04758-679", info: "Der DRK Ortsverein bietet mit dem Arbeitskreis viele verschiedene Veranstaltungen", color: "#ff887c" },
-        { id: 3, name: "Schützenverein Nordleda", contact: "Über das Kontaktformular auf der Webseite", info: "Schützenverein Nordleda von 1953 e.V.", link: "https://www.svnordleda.de/", color: "#7ae7bf" },
-        { id: 4, name: "Kirchengemeinde Nordleda", contact: "meike.mueller-bilgenroth@evlka.de", info: "Die Kirchengemeinde St. Nicolai in Nordleda", link: "https://www.kk-ch.de/gemeinden/nordleda/", color: "#dbadff" },
-		{ id: 5, name: "taktlos-Chor", contact: "Über das Kontaktformular auf der Webseite", info: "...der a cappella Männerchor", link: "https://www.gruppe-taktlos.de/", color: "#5484ed" },
-		{ id: 6, name: "LoGos-Chor Nordleda", contact: "Gunda Knust Tel. 04758-326", info: "Lobpreis-Gospelchor", color: "#8A2BE2" },
-		{ id: 7, name: "FamilienHaven Nordleda", contact: "Serina Naß Tel. 015256302291", info: "Delfi Kurse - Fachkraft für Beikost, Elternvorbereitung, Säuglingspflege, Achtsamkeit", link: "https://www.instagram.com/delfinordleda/", color: "#fbd75b" },
-		{ id: 8, name: "Gewerbegemeinschaft Nordleda", contact: "Hans-Hermann Ropers Tel. 04758-444", info: "Gewerbegemeinschafterbegemeinschaft des Ortes Nordleda", color: "#ffacac" },
-		{ id: 9, name: "CDU Nordleda", contact: "Hans-Hermann Ropers Tel. 04758-444", info: "CDU Ortsverband Nordleda", link: "https://www.cdu-land-hadeln.de/ortsverbaende/nordleda/", color: "#000000" },
-		{ id: 10, name: "SoVD Neuenkirchen/Nordleda", contact: "Über das Kontaktformular auf der Webseite", info: "Sozialverband Deutschland", link: "https://www.sovd-cuxhaven.de/verband-990125?verbandid=991896&cHash=f253ff976383e4a74d925e676582cb7b", color: "#D3D3D3" },
-		{ id: 11, name: "Miteinander Netzwerk Nordleda", contact: "miteinander.netzwerk.nordleda@gmail.com", info: "Interessengruppe zur Stärkung des Gemeinschaftsgefüges", link: "https://sites.google.com/view/netzwerknordleda/start", color: "#EE00EE" },
-		{ id: 12, name: "Feuerwehr Nordleda", contact: "info@feuerwehr-nordleda.de", info: "Freiwillige Feuerwehr und Jugendfeuerwehr Nordleda", link: "https://www.instagram.com/ffw_nordleda/?hl=de", color: "#FF0000" },
-		{ id: 13, name: "Kindergarten Nordleda", contact: "Nicola Schriever Tel. 04758-1287", info: "DRK Kindertagesstätte Nordleda", link: "https://www.drk-cuxhaven-hadeln.de/kita-nordleda.html", color: "#00FFFF" },
-		{ id: 14, name: "Der Paritätische", contact: "mobile.jugendarbeit@paritaetischer.de", info: "Der Paritätische Jugendarbeit", link: "https://www.paritaetischer.de/kreisverbaende/cuxhaven/unsere-angebote/jugendarbeit/jugendarbeit-samtgemeinde-land-hadeln/", color: "#1E90FF" },
-		{ id: 99, name: "Freier Anbieter", contact: "Evtl. über die Veranstaltungsbeschreibung", info: "verschiedene Anbieter von Veranstaltungen", color: "#F8F8FF" }
-
-    ];
+    // Die Anbieter aus der providers.js holen
+    function getProviderInfo(title) {
+        const match = title.match(/\(ID:(\d+)\)$/);
+        if (match && match[1]) {
+            const idToFind = parseInt(match[1], 10);
+            return providers.find(p => p.id === idToFind) || { name: "Unbekannt", color: "#ccc", icon: "❓" };
+        }
+        return null;
+    }
 	
 	const contentDiv = document.getElementById('app-content');
     const headerTitle = document.getElementById('headerTitle');
@@ -989,6 +1068,24 @@ function getSplashLogoPath() {
 }
 // ERWEITERTE FEIERTAGS-LOGIK END
 
+// Hamburger Menue toggeln
+document.getElementById('menu-toggle').addEventListener('click', function() {
+    const nav = document.getElementById('navigation');
+    nav.classList.toggle('open');
+    document.body.classList.toggle('menu-active'); // Aktiviert das Overlay
+});
+
+// Wenn man auf das Overlay klickt, soll das Menü auch schließen:
+document.body.addEventListener('click', function(e) {
+    const nav = document.getElementById('navigation');
+    const toggleBtn = document.getElementById('menu-toggle');
+    
+    // Wenn Menü offen ist und man NICHT auf das Menü oder den Button klickt
+    if (nav.classList.contains('open') && !nav.contains(e.target) && e.target !== toggleBtn) {
+        nav.classList.remove('open');
+        document.body.classList.remove('menu-active');
+    }
+});
 
 // HILFSFUNKTIONEN FÜR KALENDER-BUTTONS
 function formatToCalendarDateString(dateObject, isAllDay) {
@@ -2026,15 +2123,20 @@ function hideAllViews() {
     if (sContainer) sContainer.style.display = 'none';
 }
 
-function switchView(view) {
-    currentView = view; // Hier speichern wir die aktuelle Ansicht
+function closeMenu() {
+    document.getElementById('navigation').classList.remove('open');
+    document.body.classList.remove('menu-active');
+}
+
+function switchView(viewName) {
+    currentView = viewName; // Hier speichern wir die aktuelle Ansicht
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     hideAllViews();
     
     const sContainer = document.getElementById('search-container');
     const sInput = document.getElementById('searchInput');
 
-    if (view === 'events') {
+    if (viewName === 'events') {
         document.getElementById('events-btn').classList.add('active');
         headerTitle.textContent = "Veranstaltungen";
         contentDiv.style.display = 'block';
@@ -2044,7 +2146,7 @@ function switchView(view) {
 			createFilterButtons(); // Neu hinzugefügt, um "Alle Events" zu zeigen
 		if (typeof applyCategoryFilter === 'function') applyCategoryFilter(currentFilterId);
 
-    } else if (view === 'providers') {
+    } else if (viewName === 'providers') {
         document.getElementById('providers-btn').classList.add('active');
         headerTitle.textContent = "Anbieter";
         contentDiv.style.display = 'block';
@@ -2066,16 +2168,17 @@ function switchView(view) {
             renderProviderList(currentFilterId); 
         }
 
-    } else if (view === 'whatsapp') {
+    } else if (viewName === 'whatsapp') {
         document.getElementById('whatsapp-btn').classList.add('active');
         headerTitle.textContent = "WhatsApp";
         if (whatsappView) whatsappView.style.display = 'block';
         
-    } else if (view === 'contact') {
+    } else if (viewName === 'contact') {
         document.getElementById('contact-btn').classList.add('active');
-        headerTitle.textContent = "Feedback & Impressum"; 
+        headerTitle.textContent = "Impressum"; 
         if (contactView) contactView.style.display = 'block';
     }
+	closeMenu();
 }
 
 window.onload = () => {
