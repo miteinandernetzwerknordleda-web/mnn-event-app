@@ -1865,8 +1865,6 @@ const imageHtml = finalImageUrl
         if (!child.classList.contains('close')) child.remove();
     });
 
-    const finalDescription = cleanedDescription || "Keine weitere Beschreibung vorhanden.";
-    
     const rawTitle = event.title || ""; // Hier definieren wir rawTitle erst einmal!
 	const titleUpper = (event.title || "").toUpperCase();
     const isCancelled2 = titleUpper.includes("ABGESAGT") || titleUpper.includes("FÄLLT AUS");
