@@ -15,6 +15,7 @@ const providers = [
 	{ id: 12, name: "Feuerwehr Nordleda", contact: "info@feuerwehr-nordleda.de", info: "Freiwillige Feuerwehr und Jugendfeuerwehr Nordleda", link: "https://www.instagram.com/ffw_nordleda/?hl=de", color: "#FF0000" },
 	{ id: 13, name: "Kindergarten Nordleda", contact: "Nicola Schriever Tel. 04758-1287", info: "DRK Kindertagesstätte Nordleda", link: "https://www.drk-cuxhaven-hadeln.de/kita-nordleda.html", color: "#00FFFF" },
 	{ id: 14, name: "Der Paritätische", contact: "mobile.jugendarbeit@paritaetischer.de", info: "Der Paritätische Jugendarbeit", link: "https://www.paritaetischer.de/kreisverbaende/cuxhaven/unsere-angebote/jugendarbeit/jugendarbeit-samtgemeinde-land-hadeln/", color: "#1E90FF" },
+	{ id: 15, name: "Gemeinde Nordleda", contact: "Über die verlinkte Webseite", info: "Gemeinderat Nordleda", link: "https://land-hadeln.ratsinfomanagement.net/gremien/?__=UGhVM0hpd2NXNFdFcExjZWJxoKW5QJqnB9gDbyQyx2o", color: "#b4db25" },
 	{ id: 99, name: "Freier Anbieter", contact: "Evtl. über die Veranstaltungsbeschreibung", info: "verschiedene Anbieter von Veranstaltungen", color: "#F8F8FF" }
 
   ];
