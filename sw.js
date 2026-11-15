@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mnn-cache-v22000';
+const CACHE_NAME = 'mnn-cache-v22001';
 const APP_PATH = '/mnn-event-app/';
 
 const urlsToCache = [

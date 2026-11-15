@@ -882,7 +882,7 @@ body.menu-active::after {
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "2.2.000"; 
+	const APP_VERSION = "2.2.001"; 
     const MIN_SPLASH_DURATION = 2500; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -2412,17 +2412,33 @@ function renderSocialOverview(eventsList) {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
-    const nextWeek = new Date(now);
-    nextWeek.setDate(now.getDate() + 7);
+    const dayOfWeek = now.getDay(); // 0 = So, 1 = Mo, ..., 6 = Sa
+    const startMonday = new Date(now);
 
-    // Nach Datum sortieren und auf die nächsten 7 Tage filtern (abgesagte Events ausblenden)
+    if (dayOfWeek === 6) {
+        // Samstag -> kommenden Montag nehmen (+2 Tage)
+        startMonday.setDate(now.getDate() + 2);
+    } else if (dayOfWeek === 0) {
+        // Sonntag -> kommenden Montag nehmen (+1 Tag)
+        startMonday.setDate(now.getDate() + 1);
+    } else {
+        // Montag (1) bis Freitag (5) -> Montag der aktuellen Woche nehmen
+        startMonday.setDate(now.getDate() - (dayOfWeek - 1));
+    }
+    startMonday.setHours(0, 0, 0, 0);
+
+    const endSunday = new Date(startMonday);
+    endSunday.setDate(startMonday.getDate() + 6);
+    endSunday.setHours(23, 59, 59, 999);
+
+    // Nach Datum sortieren und auf Montag bis Sonntag filtern (abgesagte Events ausblenden)
     const weekEvents = [...eventsList]
         .sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate))
         .filter(ev => {
             const evDate = new Date(ev.sortDate);
             const titleUpper = (ev.title || '').toUpperCase();
             const isCancelled = titleUpper.includes('ABGESAGT') || titleUpper.includes('FÄLLT AUS');
-            return !isCancelled && evDate >= now && evDate <= nextWeek;
+            return !isCancelled && evDate >= startMonday && evDate <= endSunday;
         });
 
     const wochentage = ['SO', 'MO', 'DI', 'MI', 'DO', 'FR', 'SA'];
