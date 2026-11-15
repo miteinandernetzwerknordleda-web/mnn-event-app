@@ -667,7 +667,72 @@ body.menu-active::after {
     display: block;
 }
 
+/* --- SOCIAL MEDIA WOCHENÜBERSICHT EXPORT --- */
+.social-canvas {
+    width: 600px;
+    background-color: #f4f4f6;
+    padding: 20px;
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.social-month-header {
+    color: #8B4513;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 10px 0 12px 0;
+}
+
+.social-month-header:first-child {
+    margin-top: 0;
+}
+
+.social-event-row {
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
+    border-left: 10px solid #aaaaaa;
+}
+
+.social-date-box {
+    width: 65px;
+    text-align: center;
+    padding: 10px 0;
+    flex-shrink: 0;
+}
+
+.social-day {
+    display: block;
+    font-size: 24px;
+    font-weight: 800;
+    color: #8B4513;
+    line-height: 1.1;
+}
+
+.social-weekday {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #555;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.social-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #8B4513;
+    padding: 14px 15px 14px 5px;
+}
+
 </style>
+
+<!-- Bestehende Head-Einträge (CSS, Titel, etc.) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </head>
 <body>
 
@@ -700,6 +765,7 @@ body.menu-active::after {
 		<button id="providers-btn" class="nav-btn" onclick="switchView('providers')">Anbieter</button>
 		<button id="whatsapp-btn" class="nav-btn" onclick="switchView('whatsapp')">WhatsApp</button>
 		<button id="contact-btn" class="nav-btn" onclick="switchView('contact')">Kontakt</button>
+		<button id="export-week-btn" class="nav-btn" onclick="exportWochenuebersicht()">Einfache Wochenübersicht speichern</button>
 	</nav>
 
 <div id="events-view" class="view-content active">
@@ -806,13 +872,17 @@ body.menu-active::after {
 	
 </div>
 
+<div id="social-export-stage" style="position: fixed; left: -9999px; top: 0; z-index: -1;">
+    <div id="social-card-container" class="social-canvas"></div>
+</div>
+
 	<script src="providers.js"></script>
 
 <script>
     // --- 1. KONFIGURATION ---
     const API_KEY = 'AIzaSyDXtPSF4EuneOi_l3vCAKEtRHjD1gIiMBg';
     const CALENDAR_ID = 'miteinander.netzwerk.nordleda@gmail.com';
-	const APP_VERSION = "2.1.004"; 
+	const APP_VERSION = "2.2.000"; 
     const MIN_SPLASH_DURATION = 2500; 
     
     // NEUE KONSTANTEN FÜR ALLE FEIERTAGS-LOGOS
@@ -2295,6 +2365,97 @@ function checkForDeepLink() {
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
+}
+
+async function exportWochenuebersicht() {
+    closeMenu();
+
+    const sourceData = (typeof dynamicEvents !== 'undefined' && dynamicEvents.length > 0)
+        ? dynamicEvents
+        : (typeof lastKnownEvents !== 'undefined' ? lastKnownEvents : []);
+
+    if (sourceData.length === 0) {
+        alert('Keine Veranstaltungen zum Exportieren vorhanden.');
+        return;
+    }
+
+    renderSocialOverview(sourceData);
+
+    const element = document.getElementById('social-card-container');
+    if (!element || element.innerHTML.trim() === '') {
+        alert('In den nächsten 7 Tagen stehen keine Veranstaltungen an.');
+        return;
+    }
+
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            backgroundColor: '#f4f4f6',
+            useCORS: true
+        });
+
+        const link = document.createElement('a');
+        const datum = new Date().toISOString().slice(0, 10);
+        link.download = `Wochenuebersicht-Nordleda-${datum}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        element.innerHTML = '';
+    } catch (err) {
+        console.error('Fehler beim Erstellen der Wochenübersicht:', err);
+        alert('Die Grafik konnte leider nicht erstellt werden.');
+    }
+}
+
+function renderSocialOverview(eventsList) {
+    const container = document.getElementById('social-card-container');
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    const nextWeek = new Date(now);
+    nextWeek.setDate(now.getDate() + 7);
+
+    // Nach Datum sortieren und auf die nächsten 7 Tage filtern (abgesagte Events ausblenden)
+    const weekEvents = [...eventsList]
+        .sort((a, b) => new Date(a.sortDate) - new Date(b.sortDate))
+        .filter(ev => {
+            const evDate = new Date(ev.sortDate);
+            const titleUpper = (ev.title || '').toUpperCase();
+            const isCancelled = titleUpper.includes('ABGESAGT') || titleUpper.includes('FÄLLT AUS');
+            return !isCancelled && evDate >= now && evDate <= nextWeek;
+        });
+
+    const wochentage = ['SO', 'MO', 'DI', 'MI', 'DO', 'FR', 'SA'];
+    const monate = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
+    let currentMonth = '';
+    let html = '';
+
+    weekEvents.forEach(ev => {
+        const d = new Date(ev.sortDate);
+        const monthHeader = `${monate[d.getMonth()]} ${d.getFullYear()}`;
+
+        if (monthHeader !== currentMonth) {
+            currentMonth = monthHeader;
+            html += `<div class="social-month-header">${monthHeader}</div>`;
+        }
+
+        const provider = providers.find(p => p.id == ev.providerId);
+        const borderColor = provider && provider.color ? provider.color : '#aaaaaa';
+        const cleanEventTitle = getCleanTitle(ev.title);
+
+        html += `
+            <div class="social-event-row" style="border-left-color: ${borderColor};">
+                <div class="social-date-box">
+                    <span class="social-day">${d.getDate()}</span>
+                    <span class="social-weekday">${wochentage[d.getDay()]}</span>
+                </div>
+                <div class="social-title">${cleanEventTitle}</div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 </script>
